@@ -1,3 +1,3 @@
 <?php
-echo "¡Hola desde PHP en VS Code!";
+echo "¡Holaaaa desde PHP en VS Code!";
 ?>
