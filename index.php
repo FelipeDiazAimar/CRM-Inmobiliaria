@@ -155,7 +155,7 @@ if (!$db_ok) {
         $usingSample = true;
 }
 
-if ($conn) { $conn->close(); }
+if ($conn) { @$conn->close(); }
 
 // Preparar datos para JS
 $js = [
@@ -165,7 +165,6 @@ $js = [
         'transPorTipo' => $transPorTipo,
         'transMontoPorTipo' => $transMontoPorTipo,
         'interPorMedio' => $interPorMedio,
-        'interPorTipo' => $interPorTipo,
         'interPorDia' => [
                 'labels' => $interPorDia_labels,
                 'data' => $interPorDia_data,
