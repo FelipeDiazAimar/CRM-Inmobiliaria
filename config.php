@@ -1,14 +1,21 @@
 <?php
-// Configuración de base de datos (ajústala según tu entorno)
-// Nota: Revisa en HeidiSQL el nombre exacto de la base y el puerto.
+// Cargar variables de entorno desde .env
+function loadEnv($path) {
+    if (!file_exists($path)) return;
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && !str_starts_with(trim($line), '#')) {
+            list($key, $value) = explode('=', $line, 2);
+            putenv(trim($key) . '=' . trim($value));
+        }
+    }
+}
+loadEnv(__DIR__ . '/.env');
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', 'Jere060904');
-// Si tu base creada se llama distinto (por ejemplo crm_inmobiliaria), cámbiala aquí
-define('DB_NAME', 'crm-inmobiliaria');
-// MariaDB/MySQL por defecto: 3306. En algunos paquetes (XAMPP) podría ser 3307
-define('DB_PORT', 8001);
-
-// Opcional: forzar charset
-define('DB_CHARSET', 'utf8mb4');
+// Configuración de base de datos
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: 'crm_inmobiliaria');
+define('DB_PORT', getenv('DB_PORT') ?: 3306);
+define('DB_CHARSET', getenv('DB_CHARSET') ?: 'utf8mb4');
