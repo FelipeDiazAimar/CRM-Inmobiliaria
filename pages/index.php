@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="../estilos/index.css">
 </head>
 <body>
+    <video class="background-video" autoplay muted loop playsinline>
+        <source src="../public/background.mp4" type="video/mp4">
+    </video>
     <?php include('sidebar.php'); ?>
     <main class="main-content">
         <div class="container">
