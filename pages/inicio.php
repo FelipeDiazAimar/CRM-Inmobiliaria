@@ -242,46 +242,7 @@ $js = [
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <style>
-        :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; }
-        *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#000000;color:var(--text)}
-    header{padding:24px 20px;border-bottom:1px solid #1f2937;background:#0b1220}
-    .container{max-width:1100px;margin:0 auto;padding:24px 16px;display:flex;align-items:center;justify-content:center}
-        h1{margin:0;font-size:22px}
-        .grid{display:grid;gap:16px}
-        .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .card{background:rgba(17,24,39,.9);backdrop-filter:blur(8px);border:1px solid #1f2937;border-radius:12px;padding:16px}
-    /* SQL cards accents */
-    .sql-card{display:flex;gap:12px;align-items:flex-start;border-left:6px solid transparent}
-    .sql-icon{width:36px;height:36px;flex:0 0 36px}
-    .sql-content{flex:1}
-    .sql-accent-1{border-left-color:#06b6d4} /* cyan */
-    .sql-accent-2{border-left-color:#f59e0b} /* amber */
-    .sql-accent-3{border-left-color:#ef4444} /* red */
-    .sql-sqltext{color:var(--muted); font-family:monospace; background:#0b1220; padding:10px; border-radius:5px}
-    table th, table td{vertical-align:middle}
-    /* Force SQL section to be stacked vertically */
-    .sql-section{grid-template-columns:1fr !important}
-    .sql-section .card{width:100%}
-    @media (max-width: 800px){ .sql-card{flex-direction:row} }
-        .kpi .label{color:var(--muted);font-size:12px}
-        .kpi .value{font-size:28px;font-weight:700;margin-top:6px}
-        .foot{color:var(--muted);font-size:12px;margin-top:24px}
-        @media (max-width: 800px){ .kpis{grid-template-columns:1fr} }
-        canvas{width:100%!important;max-height:320px}
-        .warning{background:#7c2d12;color:#fde68a;border:1px solid #b45309;padding:10px;border-radius:10px;margin-bottom:16px}
-        .badge{display:inline-block;border:1px solid #374151;background:#111827;padding:2px 8px;border-radius:999px;color:#9ca3af;font-size:12px}
-        .sidebar{position:fixed;left:-250px;top:0;width:250px;height:100vh;background:#000000;color:#e5e7eb;padding:20px;box-sizing:border-box;border-right:1px solid #1f2937;z-index:1001;transition:left 0.3s}
-        .sidebar-header h2{margin:0 0 20px;font-size:24px;color:#22c55e}
-        .sidebar-nav{display:flex;flex-direction:column;gap:10px}
-        .nav-link{display:flex;align-items:center;gap:10px;color:#94a3b8;text-decoration:none;padding:10px;border-radius:8px;transition:background 0.2s}
-        .nav-link:hover{background:rgba(34,197,94,.1);color:#22c55e}
-    .sidebar-trigger{position:fixed;left:0;top:0;width:72px;height:100vh;z-index:1000}
-        .sidebar-trigger:hover + .sidebar, .sidebar:hover{left:0}
-        .main-content{padding:24px 16px;max-width:100vw}
-        footer{text-align:center;padding:20px;color:var(--muted);font-size:14px;margin:0 auto}
-    </style>
+    <link rel="stylesheet" href="estilos/inicio.css">
 </head>
 <body>
     <?php include('sidebar.php'); ?>
