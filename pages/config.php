@@ -16,6 +16,6 @@ loadEnv(__DIR__ . '/.env');
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_USER', getenv('DB_USER') ?: 'root');
 define('DB_PASS', getenv('DB_PASS') ?: '');
-define('DB_NAME', getenv('DB_NAME') ?: 'crm_inmobiliaria');
+define('DB_NAME', getenv('DB_NAME') ?: 'crm-inmobiliaria');
 define('DB_PORT', getenv('DB_PORT') ?: 8001);
 define('DB_CHARSET', getenv('DB_CHARSET') ?: 'utf8mb4');

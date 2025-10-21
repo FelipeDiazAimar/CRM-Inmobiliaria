@@ -16,6 +16,44 @@ h1{margin:0;font-size:22px}
 .sql-accent-3{border-left-color:#ef4444} /* red */
 .sql-sqltext{color:var(--muted); font-family:monospace; background:#0b1220; padding:10px; border-radius:5px}
 table th, table td{vertical-align:middle}
+/* Pagination buttons */
+.pagination-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: background 0.2s;
+    display: inline-block;
+    text-align: center;
+    line-height: 40px;
+    padding: 0;
+}
+.pagination-btn:hover {
+    background: #16a34a;
+}
+.pagination-btn.active {
+    background: #15803d;
+    font-weight: bold;
+}
+.pagination-btn:last-child {
+    margin-right: 0;
+}
+/* Pagination container */
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+.pagination-btn:disabled {
+    background: #374151;
+    color: #6b7280;
+    cursor: not-allowed;
+}
 /* Force SQL section to be stacked vertically */
 .sql-section{grid-template-columns:1fr !important}
 .sql-section .card{width:100%}
