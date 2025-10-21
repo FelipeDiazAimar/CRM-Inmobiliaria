@@ -199,7 +199,7 @@ $js = [
         :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; }
         *{box-sizing:border-box}
         body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text)}
-        header{padding:24px 20px;border-bottom:1px solid #1f2937;background:#0b1220;position:sticky;top:0;z-index:10}
+        header{padding:24px 20px;border-bottom:1px solid #1f2937;background:#0b1220}
         .container{max-width:1100px;margin:0 auto;padding:24px 16px}
         h1{margin:0;font-size:22px}
         .grid{display:grid;gap:16px}
@@ -212,15 +212,25 @@ $js = [
         canvas{width:100%!important;max-height:320px}
         .warning{background:#7c2d12;color:#fde68a;border:1px solid #b45309;padding:10px;border-radius:10px;margin-bottom:16px}
         .badge{display:inline-block;border:1px solid #374151;background:#111827;padding:2px 8px;border-radius:999px;color:#9ca3af;font-size:12px}
+        .sidebar{position:fixed;left:-250px;top:0;width:250px;height:100vh;background:#000000;color:#e5e7eb;padding:20px;box-sizing:border-box;border-right:1px solid #1f2937;z-index:1001;transition:left 0.3s}
+        .sidebar-header h2{margin:0 0 20px;font-size:24px;color:#22c55e}
+        .sidebar-nav{display:flex;flex-direction:column;gap:10px}
+        .nav-link{display:flex;align-items:center;gap:10px;color:#94a3b8;text-decoration:none;padding:10px;border-radius:8px;transition:background 0.2s}
+        .nav-link:hover{background:rgba(34,197,94,.1);color:#22c55e}
+        .sidebar-trigger{position:fixed;left:0;top:0;width:200px;height:100vh;z-index:1000;background:rgba(0,0,0,0.1)}
+        .sidebar-trigger:hover + .sidebar, .sidebar:hover{left:0}
+        .main-content{padding:24px 16px;max-width:100vw}
+        footer{text-align:center;padding:20px;color:var(--muted);font-size:14px;margin:0 auto}
     </style>
 </head>
 <body>
+    <?php include('sidebar.php'); ?>
     <header>
         <div class="container">
             <h1>CRM Inmobiliaria • Dashboard</h1>
         </div>
     </header>
-    <main class="container">
+    <main class="main-content">
         <div id="warnings"></div>
             <div class="grid kpis">
                 <div class="card kpi"><div class="label">Clientes</div><div id="kpi-clientes" class="value">-</div></div>
@@ -287,6 +297,10 @@ $js = [
             <?php endif; ?>
         </div>
     </main>
+
+    <footer>
+        <p>&copy; 2025 CRM Inmobiliaria. Todos los derechos reservados.</p>
+    </footer>
 
     <script>
         const DATA = <?php echo json_encode($js, JSON_UNESCAPED_UNICODE); ?>;

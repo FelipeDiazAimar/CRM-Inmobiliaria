@@ -17,14 +17,24 @@
         .subtitle{color:var(--muted);font-size:18px;margin-bottom:40px}
         .btn{display:inline-block;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;transition:background 0.2s}
         .btn:hover{background:linear-gradient(135deg,#16a34a,#15803d)}
+        .sidebar{position:fixed;left:-250px;top:0;width:250px;height:100vh;background:#000000;color:#e5e7eb;padding:20px;box-sizing:border-box;border-right:1px solid #1f2937;z-index:1001;transition:left 0.3s}
+        .sidebar-header h2{margin:0 0 20px;font-size:24px;color:#22c55e}
+        .sidebar-nav{display:flex;flex-direction:column;gap:10px}
+        .nav-link{display:flex;align-items:center;gap:10px;color:#94a3b8;text-decoration:none;padding:10px;border-radius:8px;transition:background 0.2s}
+        .nav-link:hover{background:rgba(34,197,94,.1);color:#22c55e}
+        .sidebar-trigger{position:fixed;left:0;top:0;width:200px;height:100vh;z-index:100vh;z-index:1000;background:rgba(0,0,0,0.1)}
+        .sidebar-trigger:hover + .sidebar, .sidebar:hover{left:0}
+        .main-content{padding:24px 16px;flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;max-width:100vw}
+        footer{text-align:center;padding:20px;color:var(--muted);font-size:14px;margin:0 auto}
         footer{text-align:center;padding:20px;color:var(--muted);font-size:14px}
     </style>
 </head>
 <body>
+    <?php include('sidebar.php'); ?>
     <header>
         <h1>CRM Inmobiliaria</h1>
     </header>
-    <main class="container">
+    <main class="main-content">
         <h1>Sección de Interacciones</h1>
         <p class="subtitle">Esta página está en desarrollo. Aquí podrás gestionar las interacciones.</p>
         <a href="/" class="btn">Volver al Dashboard Principal</a>
