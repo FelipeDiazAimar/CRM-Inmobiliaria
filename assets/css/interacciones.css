@@ -1,0 +1,9 @@
+.interacciones-page {
+    max-width: 800px;
+    gap: 16px;
+}
+
+.interacciones-page h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
