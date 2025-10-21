@@ -149,10 +149,54 @@ if ($db_ok) {
                 ) {
                         $usingSample = true;
                 }
+
+                // Datos para tablas de consultas
+                $clientesTrans = [];
+                $propAgentes = [];
+                $interPropCli = [];
+
+                if ($conn) {
+                    $res1 = $conn->query("SELECT CLIENTES.nombre, CLIENTES.apellido, TRANSACCIONES.tipo, TRANSACCIONES.monto\nFROM CLIENTES\nLEFT JOIN TRANSACCIONES ON CLIENTES.id_cliente = TRANSACCIONES.id_cliente\nLIMIT 10");
+                    if ($res1) {
+                        while ($row = $res1->fetch_assoc()) {
+                            $clientesTrans[] = $row;
+                        }
+                        $res1->free();
+                    }
+
+                    $res2 = $conn->query("SELECT PROPIEDADES.titulo, PROPIEDADES.tipo, AGENTES.nombre AS agente\nFROM PROPIEDADES\nJOIN AGENTES ON PROPIEDADES.id_agente = AGENTES.id_agente\nLIMIT 10");
+                    if ($res2) {
+                        while ($row = $res2->fetch_assoc()) {
+                            $propAgentes[] = $row;
+                        }
+                        $res2->free();
+                    }
+
+                    $res3 = $conn->query("SELECT INTERACCIONES.medio, PROPIEDADES.titulo AS propiedad, CLIENTES.nombre AS cliente\nFROM INTERACCIONES\nJOIN PROPIEDADES ON INTERACCIONES.id_propiedad = PROPIEDADES.id_propiedad\nJOIN CLIENTES ON INTERACCIONES.id_cliente = CLIENTES.id_cliente\nLIMIT 10");
+                    if ($res3) {
+                        while ($row = $res3->fetch_assoc()) {
+                            $interPropCli[] = $row;
+                        }
+                        $res3->free();
+                    }
+                }
 }
 
 if (!$db_ok) {
         $usingSample = true;
+        // Datos demo para tablas
+        $clientesTrans = [
+            ['nombre'=>'Juan', 'apellido'=>'Pérez', 'tipo'=>'venta', 'monto'=>250000],
+            ['nombre'=>'María', 'apellido'=>'Gómez', 'tipo'=>'alquiler', 'monto'=>15000],
+        ];
+        $propAgentes = [
+            ['titulo'=>'Casa con pileta', 'tipo'=>'casa', 'agente'=>'Carlos Ramírez'],
+            ['titulo'=>'Departamento céntrico', 'tipo'=>'departamento', 'agente'=>'Laura Fernández'],
+        ];
+        $interPropCli = [
+            ['medio'=>'Teléfono', 'propiedad'=>'Casa con pileta', 'cliente'=>'Juan'],
+            ['medio'=>'Email', 'propiedad'=>'Departamento céntrico', 'cliente'=>'María'],
+        ];
 }
 
 if ($conn) { @$conn->close(); }
@@ -182,7 +226,10 @@ $js = [
         'etiquetasPopulares' => $etiquetasPopulares,
         'usingSample' => $usingSample,
         'warnings' => $warn,
-        'db' => [ 'host' => DB_HOST, 'port' => DB_PORT, 'name' => DB_NAME ]
+        'db' => [ 'host' => DB_HOST, 'port' => DB_PORT, 'name' => DB_NAME ],
+        'clientesTrans' => $clientesTrans,
+        'propAgentes' => $propAgentes,
+        'interPropCli' => $interPropCli,
 ];
 ?>
 <!doctype html>
@@ -198,13 +245,26 @@ $js = [
     <style>
         :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; }
         *{box-sizing:border-box}
-        body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--text)}
-        header{padding:24px 20px;border-bottom:1px solid #1f2937;background:#0b1220}
-        .container{max-width:1100px;margin:0 auto;padding:24px 16px}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#000000;color:var(--text)}
+    header{padding:24px 20px;border-bottom:1px solid #1f2937;background:#0b1220}
+    .container{max-width:1100px;margin:0 auto;padding:24px 16px;display:flex;align-items:center;justify-content:center}
         h1{margin:0;font-size:22px}
         .grid{display:grid;gap:16px}
         .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
-        .card{background:rgba(17,24,39,.7);backdrop-filter:blur(8px);border:1px solid #1f2937;border-radius:12px;padding:16px}
+    .card{background:rgba(17,24,39,.9);backdrop-filter:blur(8px);border:1px solid #1f2937;border-radius:12px;padding:16px}
+    /* SQL cards accents */
+    .sql-card{display:flex;gap:12px;align-items:flex-start;border-left:6px solid transparent}
+    .sql-icon{width:36px;height:36px;flex:0 0 36px}
+    .sql-content{flex:1}
+    .sql-accent-1{border-left-color:#06b6d4} /* cyan */
+    .sql-accent-2{border-left-color:#f59e0b} /* amber */
+    .sql-accent-3{border-left-color:#ef4444} /* red */
+    .sql-sqltext{color:var(--muted); font-family:monospace; background:#0b1220; padding:10px; border-radius:5px}
+    table th, table td{vertical-align:middle}
+    /* Force SQL section to be stacked vertically */
+    .sql-section{grid-template-columns:1fr !important}
+    .sql-section .card{width:100%}
+    @media (max-width: 800px){ .sql-card{flex-direction:row} }
         .kpi .label{color:var(--muted);font-size:12px}
         .kpi .value{font-size:28px;font-weight:700;margin-top:6px}
         .foot{color:var(--muted);font-size:12px;margin-top:24px}
@@ -217,7 +277,7 @@ $js = [
         .sidebar-nav{display:flex;flex-direction:column;gap:10px}
         .nav-link{display:flex;align-items:center;gap:10px;color:#94a3b8;text-decoration:none;padding:10px;border-radius:8px;transition:background 0.2s}
         .nav-link:hover{background:rgba(34,197,94,.1);color:#22c55e}
-        .sidebar-trigger{position:fixed;left:0;top:0;width:200px;height:100vh;z-index:1000;background:rgba(0,0,0,0.1)}
+    .sidebar-trigger{position:fixed;left:0;top:0;width:72px;height:100vh;z-index:1000}
         .sidebar-trigger:hover + .sidebar, .sidebar:hover{left:0}
         .main-content{padding:24px 16px;max-width:100vw}
         footer{text-align:center;padding:20px;color:var(--muted);font-size:14px;margin:0 auto}
@@ -227,7 +287,7 @@ $js = [
     <?php include('sidebar.php'); ?>
     <header>
         <div class="container">
-            <h1>CRM Inmobiliaria • Dashboard</h1>
+            <h1>Dashboard Analítico - Consultas SQL y Métricas del CRM Inmobiliario</h1>
         </div>
     </header>
     <main class="main-content">
@@ -289,6 +349,99 @@ $js = [
                         <canvas id="chartEtiq"></canvas>
                     </div>
         </div>
+
+        <h2 style="color:var(--text); margin-top:40px;">Consultas SQL y Datos de Tablas</h2>
+        <p style="color:var(--muted);">A continuación se muestran ejemplos de consultas SQL que unen al menos 2 tablas, junto con sus resultados en tablas.</p>
+
+    <div class="sql-section" style="display:flex;flex-direction:column;gap:20px;margin-top:20px;">
+        <div class="card sql-card sql-accent-1" style="width:100%">
+            <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="4" rx="1" fill="#06b6d4"></rect>
+                <rect x="3" y="10" width="12" height="4" rx="1" fill="#22c55e"></rect>
+                <rect x="3" y="16" width="18" height="4" rx="1" fill="#84cc16"></rect>
+            </svg>
+            <div class="sql-content">
+          <h3 style="color:var(--text);margin:0">Consulta 1: Clientes con sus Transacciones (une CLIENTES y TRANSACCIONES)</h3>
+          <pre class="sql-sqltext">SELECT CLIENTES.nombre,
+    CLIENTES.apellido,
+    TRANSACCIONES.tipo,
+    TRANSACCIONES.monto
+FROM CLIENTES
+LEFT JOIN TRANSACCIONES ON CLIENTES.id_cliente = TRANSACCIONES.id_cliente
+LIMIT 10</pre>
+                <div style="overflow-x:auto; margin-top:8px;">
+                    <table style="width:100%; border-collapse:collapse; color:var(--text);">
+                        <thead>
+                            <tr style="background:#1f2937;">
+                                <th style="padding:8px; border:1px solid #374151;">Nombre</th>
+                                <th style="padding:8px; border:1px solid #374151;">Apellido</th>
+                                <th style="padding:8px; border:1px solid #374151;">Tipo Transacción</th>
+                                <th style="padding:8px; border:1px solid #374151;">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableClientesTrans"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card sql-card sql-accent-2" style="width:100%">
+            <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="7" r="3" fill="#f59e0b"></circle>
+                <rect x="6" y="12" width="12" height="6" rx="2" fill="#f97316"></rect>
+            </svg>
+            <div class="sql-content">
+          <h3 style="color:var(--text);margin:0">Consulta 2: Propiedades con sus Agentes (une PROPIEDADES y AGENTES)</h3>
+          <pre class="sql-sqltext">SELECT PROPIEDADES.titulo,
+    PROPIEDADES.tipo,
+    AGENTES.nombre AS agente
+FROM PROPIEDADES
+JOIN AGENTES ON PROPIEDADES.id_agente = AGENTES.id_agente
+LIMIT 10</pre>
+                <div style="overflow-x:auto; margin-top:8px;">
+                    <table style="width:100%; border-collapse:collapse; color:var(--text);">
+                        <thead>
+                            <tr style="background:#1f2937;">
+                                <th style="padding:8px; border:1px solid #374151;">Título Propiedad</th>
+                                <th style="padding:8px; border:1px solid #374151;">Tipo</th>
+                                <th style="padding:8px; border:1px solid #374151;">Agente</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablePropAgentes"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card sql-card sql-accent-3" style="width:100%">
+            <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M4 7h16v3H4z" fill="#ef4444"></path>
+                <path d="M4 12h10v7H4z" fill="#f97316"></path>
+            </svg>
+            <div class="sql-content">
+          <h3 style="color:var(--text);margin:0">Consulta 3: Interacciones con Propiedades y Clientes (une INTERACCIONES, PROPIEDADES, CLIENTES)</h3>
+          <pre class="sql-sqltext">SELECT INTERACCIONES.medio,
+    PROPIEDADES.titulo AS propiedad,
+    CLIENTES.nombre AS cliente
+FROM INTERACCIONES
+JOIN PROPIEDADES ON INTERACCIONES.id_propiedad = PROPIEDADES.id_propiedad
+JOIN CLIENTES ON INTERACCIONES.id_cliente = CLIENTES.id_cliente
+LIMIT 10</pre>
+                <div style="overflow-x:auto; margin-top:8px;">
+                    <table style="width:100%; border-collapse:collapse; color:var(--text);">
+                        <thead>
+                            <tr style="background:#1f2937;">
+                                <th style="padding:8px; border:1px solid #374151;">Medio</th>
+                                <th style="padding:8px; border:1px solid #374151;">Propiedad</th>
+                                <th style="padding:8px; border:1px solid #374151;">Cliente</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableInterPropCli"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
         <div class="foot">
             <span class="badge">DB: <?=htmlspecialchars($js['db']['name'])?> @ <?=htmlspecialchars($js['db']['host'])?>:<?=htmlspecialchars((string)$js['db']['port'])?></span>
@@ -416,6 +569,20 @@ $js = [
                 data:{ labels:etiLabels, datasets:[{ label:'Cantidad', data:etiData, backgroundColor:'#60a5fa' }]},
                 options:{ indexAxis:'y', scales:{ x:{ ticks:{ color:'#e5e7eb' }, beginAtZero:true }, y:{ ticks:{ color:'#e5e7eb' } } }, plugins:{ legend:{ labels:{ color:'#e5e7eb' } } } }
             });
+
+        // Llenar tablas
+        const fillTable = (id, data, keys) => {
+            const tbody = document.getElementById(id);
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="' + keys.length + '" style="text-align:center; color:#94a3b8;">Sin datos</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(row => '<tr>' + keys.map(k => '<td style="padding:8px; border:1px solid #374151;">' + (row[k] || '') + '</td>').join('') + '</tr>').join('');
+        };
+
+        fillTable('tableClientesTrans', DATA.clientesTrans, ['nombre', 'apellido', 'tipo', 'monto']);
+        fillTable('tablePropAgentes', DATA.propAgentes, ['titulo', 'tipo', 'agente']);
+        fillTable('tableInterPropCli', DATA.interPropCli, ['medio', 'propiedad', 'cliente']);
     </script>
 </body>
 </html>

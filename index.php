@@ -38,7 +38,7 @@
     <main class="main-content">
         <div class="container">
             <h1>Bienvenido al Dashboard Principal</h1>
-            <p class="subtitle">Selecciona una sección para gestionar tu CRM inmobiliario</p>
+            <p class="subtitle">Selecciona una sección para visualizar las analíticas de tu CRM inmobiliario</p>
             <div class="grid">
                 <div class="card">
                     <h2>Inicio</h2>
@@ -47,12 +47,12 @@
                 </div>
                 <div class="card">
                     <h2>Propiedades</h2>
-                    <p>Gestiona las propiedades disponibles, agrega nuevas o edita existentes.</p>
+                    <p>Visualiza métricas, KPIs y estadísticas relacionadas con las propiedades y los clientes.</p>
                     <a href="/propiedades.php" class="btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><rect x="9" y="6" width="6" height="4"/><path d="M9 18h6"/><path d="M9 14h6"/></svg> Ir a Propiedades</a>
                 </div>
                 <div class="card">
                     <h2>Interacciones</h2>
-                    <p>Revisa y administra las interacciones con clientes y agentes.</p>
+                    <p>Visualiza métricas, KPIs y estadísticas relacionadas con las interacciones de agentes y clientes.</p>
                     <a href="/interacciones.php" class="btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ir a Interacciones</a>
                 </div>
             </div>
