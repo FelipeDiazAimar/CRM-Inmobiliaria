@@ -3,7 +3,10 @@
 <div class="sidebar-trigger"></div>
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2>CRM Inmobiliaria</h2>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <img src="../public/logocrm.png" alt="CRM Logo" style="width: 50px; height: auto;">
+            <h2 style="margin: 0; font-size: 15px;">CRM INMOBILIARIA</h2>
+        </div>
     </div>
     <nav class="sidebar-nav">
         <a href="/pages/index.php" class="nav-link">

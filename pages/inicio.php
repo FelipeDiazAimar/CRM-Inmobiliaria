@@ -383,15 +383,15 @@ if ($conn) { @$conn->close(); }
             <div class="sql-content">
           <h3 style="color:var(--text);margin:0">Consulta 1: Tabla clientes</h3>
           <pre class="sql-sqltext">SELECT * FROM clientes LIMIT 10</pre>
-                <div style="overflow-x:auto; margin-top:8px;">
+                <div class="table-scroll" style="margin-top:8px;">
                     <table style="width:100%; border-collapse:collapse; color:var(--text);">
                         <thead id="theadClientes" style="background:#1f2937;"></thead>
                         <tbody id="tbodyClientes"></tbody>
                     </table>
                 </div>
-                <div id="paginationClientes" class="pagination"></div>
             </div>
         </div>
+        <div id="paginationClientes" class="pagination"></div>
 
         <div class="card sql-card sql-accent-2" style="width:100%">
             <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -404,15 +404,15 @@ if ($conn) { @$conn->close(); }
             <div class="sql-content">
           <h3 style="color:var(--text);margin:0">Consulta 2: Tabla propiedades</h3>
           <pre class="sql-sqltext">SELECT * FROM propiedades LIMIT 10</pre>
-                <div style="overflow-x:auto; margin-top:8px;">
+                <div class="table-scroll" style="margin-top:8px;">
                     <table style="width:100%; border-collapse:collapse; color:var(--text);">
                         <thead id="theadPropiedades" style="background:#1f2937;"></thead>
                         <tbody id="tbodyPropiedades"></tbody>
                     </table>
                 </div>
-                <div id="paginationPropiedades" class="pagination"></div>
             </div>
         </div>
+        <div id="paginationPropiedades" class="pagination"></div>
 
         <div class="card sql-card sql-accent-3" style="width:100%">
             <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -425,15 +425,15 @@ if ($conn) { @$conn->close(); }
             <div class="sql-content">
           <h3 style="color:var(--text);margin:0">Consulta 3: Tabla interacciones</h3>
           <pre class="sql-sqltext">SELECT * FROM interacciones LIMIT 10</pre>
-                <div style="overflow-x:auto; margin-top:8px;">
+                <div class="table-scroll" style="margin-top:8px;">
                     <table style="width:100%; border-collapse:collapse; color:var(--text);">
                         <thead id="theadInteracciones" style="background:#1f2937;"></thead>
                         <tbody id="tbodyInteracciones"></tbody>
                     </table>
                 </div>
-                <div id="paginationInteracciones" class="pagination"></div>
             </div>
         </div>
+        <div id="paginationInteracciones" class="pagination"></div>
     </div>
 
         <div class="foot">
