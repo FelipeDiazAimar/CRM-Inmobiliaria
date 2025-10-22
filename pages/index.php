@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -10,9 +10,13 @@
     <link rel="stylesheet" href="../estilos/index.css">
 </head>
 <body>
+    <video class="background-video" autoplay muted loop playsinline>
+        <source src="../public/background.mp4" type="video/mp4">
+    </video>
     <?php include('sidebar.php'); ?>
     <main class="main-content">
         <div class="container">
+            <img src="../public/logocrm.png" alt="CRM Logo" class="logo">
             <h1>Bienvenido al Dashboard Principal</h1>
             <p class="subtitle">Selecciona una sección para visualizar las analíticas de tu CRM inmobiliario</p>
             <div class="grid">
