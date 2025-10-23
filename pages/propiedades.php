@@ -32,12 +32,12 @@ if ($db_ok) {
 // Query propiedades disponibles
 $props = [];
 if ($db_ok) {
-	$sql_props = "SELECT p.id_propiedad, p.titulo, p.tipo, p.precio, p.direccion AS ubicacion, p.ciudad, p.provincia, p.estado, p.descripcion, p.superficie, p.ambientes, p.banos, p.dormitorios, p.antiguedad,
-						 a.nombre AS agente_nombre, a.apellido AS agente_apellido, a.email AS agente_email, a.telefono AS agente_telefono
-				  FROM PROPIEDADES p
-				  LEFT JOIN AGENTES a ON p.id_agente = a.id_agente
-				  WHERE p.estado = 'disponible'
-				  ORDER BY p.id_propiedad DESC";
+	$sql_props = "SELECT PROPIEDADES.id_propiedad, PROPIEDADES.titulo, PROPIEDADES.tipo, PROPIEDADES.precio, PROPIEDADES.direccion AS ubicacion, PROPIEDADES.ciudad, PROPIEDADES.provincia, PROPIEDADES.estado, PROPIEDADES.descripcion, PROPIEDADES.superficie, PROPIEDADES.ambientes, PROPIEDADES.banos, PROPIEDADES.dormitorios, PROPIEDADES.antiguedad,
+						 AGENTES.nombre AS agente_nombre, AGENTES.apellido AS agente_apellido, AGENTES.email AS agente_email, AGENTES.telefono AS agente_telefono
+				  FROM PROPIEDADES
+				  LEFT JOIN AGENTES ON PROPIEDADES.id_agente = AGENTES.id_agente
+				  WHERE PROPIEDADES.estado = 'disponible'
+				  ORDER BY PROPIEDADES.id_propiedad DESC";
 	if ($res = $conn->query($sql_props)) {
 		while ($row = $res->fetch_assoc()) {
 			$props[] = $row;
@@ -45,6 +45,61 @@ if ($db_ok) {
 		$res->free();
 	}
 }
+
+// Fetch a random image for placeholders
+$random_image = null;
+$image_dir = __DIR__ . '/../image/Inmueble';
+$image_files = glob($image_dir . '/*.{jpg,jpeg,png,JPG,JPEG,PNG}', GLOB_BRACE);
+if ($db_ok) {
+	$sql_random = "SELECT imagen FROM IMAGENES ORDER BY RAND() LIMIT 1";
+	if ($res_random = $conn->query($sql_random)) {
+		$row_random = $res_random->fetch_assoc();
+		if ($row_random && $row_random['imagen'] !== null) {
+			$mime = 'image/jpeg'; // default
+			if (function_exists('finfo_open')) {
+				$finfo = finfo_open(FILEINFO_MIME_TYPE);
+				if ($finfo) {
+					$mime = finfo_buffer($finfo, $row_random['imagen']);
+					finfo_close($finfo);
+				}
+			}
+			$random_image = ['blob' => base64_encode($row_random['imagen']), 'mime' => $mime];
+		} elseif (!empty($image_files)) {
+			// Fallback to local random image
+			$random_file = $image_files[array_rand($image_files)];
+			$image_data = file_get_contents($random_file);
+			$mime = 'image/jpeg'; // default
+			if (function_exists('finfo_open')) {
+				$finfo = finfo_open(FILEINFO_MIME_TYPE);
+				if ($finfo) {
+					$mime = finfo_file($finfo, $random_file);
+					finfo_close($finfo);
+				}
+			}
+			$random_image = ['blob' => base64_encode($image_data), 'mime' => $mime];
+		}
+		$res_random->free();
+	}
+} elseif (!empty($image_files)) {
+	// If DB not ok, still use local
+	$random_file = $image_files[array_rand($image_files)];
+	$image_data = file_get_contents($random_file);
+	$mime = 'image/jpeg';
+	if (function_exists('finfo_open')) {
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		if ($finfo) {
+			$mime = finfo_file($finfo, $random_file);
+			finfo_close($finfo);
+		}
+	}
+	$random_image = ['blob' => base64_encode($image_data), 'mime' => $mime];
+}
+
+// Define SQL queries for tooltips
+$sql_images = "SELECT url FROM IMAGENES WHERE id_propiedad = ? ORDER BY principal DESC, id_imagen";
+$sql_interes = "SELECT CLIENTES.nombre, CLIENTES.apellido, CLIENTES.email, CLIENTES.telefono, INTERACCIONES.fecha_interaccion AS fecha, INTERACCIONES.medio, INTERACCIONES.descripcion AS notas FROM INTERACCIONES JOIN CLIENTES ON INTERACCIONES.id_cliente = CLIENTES.id_cliente WHERE INTERACCIONES.id_propiedad = ? ORDER BY INTERACCIONES.fecha_interaccion DESC";
+$sql_trans = "SELECT tipo AS tipo_transaccion, monto AS precio_final, fecha_inicio AS fecha FROM TRANSACCIONES WHERE id_propiedad = ?";
+$sql_citas = "SELECT CLIENTES.nombre, CLIENTES.apellido, CITAS.fecha, CITAS.estado, CITAS.notas FROM CITAS JOIN CLIENTES ON CITAS.id_cliente = CLIENTES.id_cliente WHERE CITAS.id_propiedad = ? ORDER BY CITAS.fecha";
 ?>
 <!doctype html>
 <html lang="es">
@@ -80,24 +135,48 @@ if ($db_ok) {
 
 					// Imágenes asociadas
 					$images = [];
-					$stmt_img = $conn->prepare("SELECT url FROM IMAGENES WHERE id_propiedad = ? ORDER BY principal DESC, id_imagen");
+					$stmt_img = $conn->prepare("SELECT imagen FROM IMAGENES WHERE id_propiedad = ? ORDER BY principal DESC, id_imagen");
 					if ($stmt_img) {
 						$stmt_img->bind_param('i', $propId);
 						$stmt_img->execute();
 						$res_img = $stmt_img->get_result();
 						while ($img = $res_img->fetch_assoc()) {
-							$images[] = $img['url'];
+							if ($img['imagen'] !== null) {
+								$mime = 'image/jpeg'; // default
+								if (function_exists('finfo_open')) {
+									$finfo = finfo_open(FILEINFO_MIME_TYPE);
+									if ($finfo) {
+										$mime = finfo_buffer($finfo, $img['imagen']);
+										finfo_close($finfo);
+									}
+								}
+								$images[] = ['blob' => base64_encode($img['imagen']), 'mime' => $mime];
+							}
 						}
 						$stmt_img->close();
+					}
+					// If no images from DB, add a random local image
+					if (empty($images) && !empty($image_files)) {
+						$random_file = $image_files[array_rand($image_files)];
+						$image_data = file_get_contents($random_file);
+						$mime = 'image/jpeg';
+						if (function_exists('finfo_open')) {
+							$finfo = finfo_open(FILEINFO_MIME_TYPE);
+							if ($finfo) {
+								$mime = finfo_file($finfo, $random_file);
+								finfo_close($finfo);
+							}
+						}
+						$images[] = ['blob' => base64_encode($image_data), 'mime' => $mime];
 					}
 
 					// Interacciones con clientes
 					$interacciones = [];
-					$sql_interes = "SELECT c.nombre, c.apellido, c.email, c.telefono, i.fecha_interaccion AS fecha, i.medio, i.descripcion AS notas
-									FROM INTERACCIONES i
-									JOIN CLIENTES c ON i.id_cliente = c.id_cliente
-									WHERE i.id_propiedad = ?
-									ORDER BY i.fecha_interaccion DESC";
+					$sql_interes = "SELECT CLIENTES.nombre, CLIENTES.apellido, CLIENTES.email, CLIENTES.telefono, INTERACCIONES.fecha_interaccion AS fecha, INTERACCIONES.medio, INTERACCIONES.descripcion AS notas
+									FROM INTERACCIONES
+									JOIN CLIENTES ON INTERACCIONES.id_cliente = CLIENTES.id_cliente
+									WHERE INTERACCIONES.id_propiedad = ?
+									ORDER BY INTERACCIONES.fecha_interaccion DESC";
 					$stmt_interes = $conn->prepare($sql_interes);
 					if ($stmt_interes) {
 						$stmt_interes->bind_param('i', $propId);
@@ -127,11 +206,11 @@ if ($db_ok) {
 
 					// Citas agendadas
 					$citas = [];
-					$sql_citas = "SELECT c.nombre, c.apellido, citas.fecha, citas.estado, citas.notas
-								  FROM CITAS citas
-								  JOIN CLIENTES c ON citas.id_cliente = c.id_cliente
-								  WHERE citas.id_propiedad = ?
-								  ORDER BY citas.fecha";
+					$sql_citas = "SELECT CLIENTES.nombre, CLIENTES.apellido, CITAS.fecha, CITAS.estado, CITAS.notas
+								  FROM CITAS
+								  JOIN CLIENTES ON CITAS.id_cliente = CLIENTES.id_cliente
+								  WHERE CITAS.id_propiedad = ?
+								  ORDER BY CITAS.fecha";
 					$stmt_citas = $conn->prepare($sql_citas);
 					if ($stmt_citas) {
 						$stmt_citas->bind_param('i', $propId);
@@ -147,12 +226,18 @@ if ($db_ok) {
 					echo '<h2>' . htmlspecialchars($prop['titulo']) . '</h2>';
 					if (!empty($images)) {
 						echo '<div class="card-image">';
-						echo '<img src="../' . htmlspecialchars($images[0]) . '" alt="Imagen de propiedad">';
+						echo '<img src="data:' . $images[0]['mime'] . ';base64,' . htmlspecialchars($images[0]['blob']) . '" alt="Imagen de propiedad">';
 						echo '</div>';
 					} else {
-						echo '<div class="card-image">';
-						echo '<img src="https://via.placeholder.com/400x300/1f2937/94a3b8?text=Sin+Imagen" alt="Imagen genérica">';
-						echo '</div>';
+						if ($random_image) {
+							echo '<div class="card-image">';
+							echo '<img src="data:' . $random_image['mime'] . ';base64,' . htmlspecialchars($random_image['blob']) . '" alt="Imagen genérica de propiedad">';
+							echo '</div>';
+						} else {
+							echo '<div class="card-image">';
+							echo '<img src="https://via.placeholder.com/400x300/1f2937/94a3b8?text=Sin+Imagen" alt="Imagen genérica">';
+							echo '</div>';
+						}
 					}
 					echo '<div class="card-summary">';
 					echo '<p class="location">' . htmlspecialchars($prop['tipo']) . ' · ' . htmlspecialchars($prop['ciudad']) . ', ' . htmlspecialchars($prop['provincia']) . '</p>';
@@ -168,23 +253,29 @@ if ($db_ok) {
 					echo '<div id="modal-' . $propId . '" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">';
 					echo '<div class="modal-content">';
 					echo '<button class="modal-close" data-target="modal-' . $propId . '" aria-label="Cerrar ventana">×</button>';
-					echo '<h2>' . htmlspecialchars($prop['titulo']) . '</h2>';
-					echo '<p><em>' . htmlspecialchars($prop['tipo']) . ' en ' . htmlspecialchars($prop['ubicacion']) . ', ' . htmlspecialchars($prop['ciudad']) . ', ' . htmlspecialchars($prop['provincia']) . '</em></p>';
+					echo '<div class="tooltip"><h2>' . htmlspecialchars($prop['titulo']) . '</h2><span class="tooltiptext">' . htmlspecialchars($sql_props) . '</span></div>';
+					echo '<div class="tooltip"><p><em>' . htmlspecialchars($prop['tipo']) . ' en ' . htmlspecialchars($prop['ubicacion']) . ', ' . htmlspecialchars($prop['ciudad']) . ', ' . htmlspecialchars($prop['provincia']) . '</em></p><span class="tooltiptext">' . htmlspecialchars($sql_props) . '</span></div>';
 					echo '<div class="modal-body">';
 					if (!empty($images)) {
-						echo '<div class="image-gallery modal-gallery" data-prop="' . $propId . '" data-images="' . htmlspecialchars(json_encode($images), ENT_QUOTES) . '">';
-						echo '<img id="img-' . $propId . '" src="../' . htmlspecialchars($images[0]) . '" alt="Imagen de propiedad">';
+						echo '<div class="tooltip"><div class="image-gallery modal-gallery" data-prop="' . $propId . '" data-images="' . htmlspecialchars(json_encode($images), ENT_QUOTES) . '">';
+						echo '<img id="img-' . $propId . '" src="data:' . $images[0]['mime'] . ';base64,' . htmlspecialchars($images[0]['blob']) . '" alt="Imagen de propiedad">';
 						if (count($images) > 1) {
 							echo '<button class="prev" onclick="changeImage(' . $propId . ', -1)">‹</button>';
 							echo '<button class="next" onclick="changeImage(' . $propId . ', 1)">›</button>';
 						}
-						echo '</div>';
+						echo '</div><span class="tooltiptext">' . htmlspecialchars($sql_images) . '</span></div>';
 					} else {
-						echo '<img src="https://via.placeholder.com/800x600/111827/94a3b8?text=Sin+Imagen" alt="Imagen genérica" class="modal-placeholder">';
+						echo '<div class="tooltip">';
+						if ($random_image) {
+							echo '<img src="data:' . $random_image['mime'] . ';base64,' . htmlspecialchars($random_image['blob']) . '" alt="Imagen genérica de propiedad" class="modal-placeholder">';
+						} else {
+							echo '<img src="https://via.placeholder.com/800x600/111827/94a3b8?text=Sin+Imagen" alt="Imagen genérica" class="modal-placeholder">';
+						}
+						echo '<span class="tooltiptext">' . htmlspecialchars($sql_images) . '</span></div>';
 					}
 
 					echo '<div class="modal-section">';
-					echo '<h3>Detalles de la Propiedad</h3>';
+					echo '<div class="tooltip"><h3>Detalles de la Propiedad</h3><span class="tooltiptext">' . htmlspecialchars($sql_props) . '</span></div>';
 					echo '<ul>';
 					echo '<li><strong>Precio:</strong> $' . number_format($prop['precio'], 0, ',', '.') . '</li>';
 					echo '<li><strong>Superficie:</strong> ' . htmlspecialchars($prop['superficie']) . ' m²</li>';
@@ -200,7 +291,7 @@ if ($db_ok) {
 					echo '</div>';
 
 					echo '<div class="modal-section">';
-					echo '<h3>Agente Asignado</h3>';
+					echo '<div class="tooltip"><h3>Agente Asignado</h3><span class="tooltiptext">' . htmlspecialchars($sql_props) . '</span></div>';
 					if (!empty($prop['agente_nombre'])) {
 						echo '<p>' . htmlspecialchars($prop['agente_nombre'] . ' ' . $prop['agente_apellido']) . '</p>';
 						echo '<p>Email: ' . htmlspecialchars($prop['agente_email']) . '</p>';
@@ -211,7 +302,7 @@ if ($db_ok) {
 					echo '</div>';
 
 					echo '<div class="modal-section">';
-					echo '<h3>Interacciones con Clientes</h3>';
+					echo '<div class="tooltip"><h3>Interacciones con Clientes</h3><span class="tooltiptext">' . htmlspecialchars($sql_interes) . '</span></div>';
 					if (!empty($interacciones)) {
 						echo '<ul>';
 						foreach ($interacciones as $cliente) {
@@ -232,7 +323,7 @@ if ($db_ok) {
 					echo '</div>';
 
 					echo '<div class="modal-section">';
-					echo '<h3>Transacciones</h3>';
+					echo '<div class="tooltip"><h3>Transacciones</h3><span class="tooltiptext">' . htmlspecialchars($sql_trans) . '</span></div>';
 					if (!empty($transacciones)) {
 						echo '<ul>';
 						foreach ($transacciones as $trans) {
@@ -248,7 +339,7 @@ if ($db_ok) {
 					echo '</div>';
 
 					echo '<div class="modal-section">';
-					echo '<h3>Citas Programadas</h3>';
+					echo '<div class="tooltip"><h3>Citas Programadas</h3><span class="tooltiptext">' . htmlspecialchars($sql_citas) . '</span></div>';
 					if (!empty($citas)) {
 						echo '<ul>';
 						foreach ($citas as $cita) {
@@ -301,7 +392,8 @@ if ($db_ok) {
 
 			var imgEl = document.getElementById('img-' + propId);
 			if (imgEl) {
-				imgEl.src = '../' + images[imageIndexes[propId]];
+				var image = images[imageIndexes[propId]];
+				imgEl.src = 'data:' + image.mime + ';base64,' + image.blob;
 			}
 		}
 
@@ -321,7 +413,7 @@ if ($db_ok) {
 						imageIndexes[propId] = 0;
 						var imgEl = document.getElementById('img-' + propId);
 						if (imgEl) {
-							imgEl.src = '../' + images[0];
+							imgEl.src = 'data:' + images[0].mime + ';base64,' + images[0].blob;
 						}
 					}
 				}
