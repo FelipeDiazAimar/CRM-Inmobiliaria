@@ -468,3 +468,11 @@ body.modal-open {
         max-height: 50vh;
     }
 }
+
+/* Global Scrollbar Styles */
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: #000000; border-radius: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(34,197,94,0.7); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(22,163,74,0.8); }
+body.theme-light ::-webkit-scrollbar-track { background: #ffffff; }
+body.theme-light ::-webkit-scrollbar-thumb { background: rgba(34,197,94,0.7); }
