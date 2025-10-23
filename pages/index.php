@@ -13,7 +13,7 @@
 
 <body>
     <video class="background-video" autoplay muted loop playsinline>
-        <source src="../public/background_fixed.mp4" type="video/mp4">
+        <source src="../public/background.mp4" type="video/mp4">
     </video>
     <?php include('sidebar.php'); ?>
     <main class="main-content">
