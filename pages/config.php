@@ -1,6 +1,7 @@
 <?php
 // Cargar variables de entorno desde .env
-function loadEnv($path) {
+function loadEnv($path)
+{
     if (!file_exists($path)) return;
     $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -10,7 +11,19 @@ function loadEnv($path) {
         }
     }
 }
-loadEnv(__DIR__ . '/.env');
+
+// Buscar el primer .env disponible subiendo niveles para soportar ejecuciones desde /pages
+$candidatePaths = [
+    __DIR__ . '/.env',
+    dirname(__DIR__) . '/.env',
+    dirname(__DIR__, 2) . '/.env',
+];
+foreach ($candidatePaths as $envPath) {
+    if (file_exists($envPath)) {
+        loadEnv($envPath);
+        break;
+    }
+}
 
 // Configuración de base de datos
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');

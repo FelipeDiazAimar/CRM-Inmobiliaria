@@ -1,0 +1,9 @@
+.propiedades-page {
+    max-width: 800px;
+    gap: 16px;
+}
+
+.propiedades-page h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
