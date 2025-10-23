@@ -429,28 +429,34 @@ if ($conn) {
             <div class="card kpi">
                 <div class="label">Clientes</div>
                 <div id="kpi-clientes" class="value">-</div>
+                <div class="tooltip">SQL: SELECT COUNT(*) AS c FROM CLIENTES</div>
             </div>
             <div class="card kpi">
                 <div class="label">Agentes</div>
                 <div id="kpi-agentes" class="value">-</div>
+                <div class="tooltip">SQL: SELECT COUNT(*) AS c FROM AGENTES</div>
             </div>
             <div class="card kpi">
                 <div class="label">Propiedades</div>
                 <div id="kpi-propiedades" class="value">-</div>
+                <div class="tooltip">SQL: SELECT COUNT(*) AS c FROM PROPIEDADES</div>
             </div>
         </div>
         <div class="grid kpis" style="margin-top:16px">
             <div class="card kpi">
                 <div class="label">Transacciones</div>
                 <div id="kpi-transacciones" class="value">-</div>
+                <div class="tooltip">SQL: SELECT COUNT(*) AS c FROM TRANSACCIONES</div>
             </div>
             <div class="card kpi">
                 <div class="label">Monto total</div>
                 <div id="kpi-monto" class="value">-</div>
+                <div class="tooltip">SQL: SELECT COALESCE(SUM(monto),0) s FROM TRANSACCIONES</div>
             </div>
             <div class="card kpi">
                 <div class="label">Interacciones</div>
                 <div id="kpi-interacciones" class="value">-</div>
+                <div class="tooltip">SQL: SELECT COUNT(*) AS c FROM INTERACCIONES</div>
             </div>
         </div>
 
