@@ -102,7 +102,6 @@
         width: 200px;
         height: 100vh;
         z-index: 1000;
-        background: rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-trigger:hover + .sidebar,

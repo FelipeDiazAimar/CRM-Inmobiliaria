@@ -48,6 +48,7 @@ if ($db_ok) {
 ?>
 <!doctype html>
 <html lang="es">
+
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -57,6 +58,7 @@ if ($db_ok) {
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="../estilos/propiedades.css">
 </head>
+
 <body>
 	<?php include 'sidebar.php'; ?>
 	<header>
@@ -337,28 +339,28 @@ if ($db_ok) {
 			}
 		}
 
-		document.addEventListener('DOMContentLoaded', function () {
-			document.querySelectorAll('.open-modal').forEach(function (button) {
-				button.addEventListener('click', function () {
+		document.addEventListener('DOMContentLoaded', function() {
+			document.querySelectorAll('.open-modal').forEach(function(button) {
+				button.addEventListener('click', function() {
 					openModal(this.dataset.target, this.dataset.prop);
 				});
 			});
 
-			document.querySelectorAll('.modal-close').forEach(function (button) {
-				button.addEventListener('click', function () {
+			document.querySelectorAll('.modal-close').forEach(function(button) {
+				button.addEventListener('click', function() {
 					closeModal(this.dataset.target);
 				});
 			});
 
-			document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
-				overlay.addEventListener('click', function (event) {
+			document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+				overlay.addEventListener('click', function(event) {
 					if (event.target === overlay) {
 						closeModal(overlay.id);
 					}
 				});
 			});
 
-			document.addEventListener('keydown', function (event) {
+			document.addEventListener('keydown', function(event) {
 				if (event.key === 'Escape') {
 					var activeModal = document.querySelector('.modal-overlay.active');
 					if (activeModal) {
@@ -369,4 +371,5 @@ if ($db_ok) {
 		});
 	</script>
 </body>
+
 </html>

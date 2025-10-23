@@ -110,27 +110,31 @@ for ($i = 6; $i >= 0; $i--) {
 }
 
 if ($db_ok) {
-                $js['db'] = [
-                    'name' => defined('DB_NAME') ? DB_NAME : 'unknown',
-                    'host' => defined('DB_HOST') ? DB_HOST : 'unknown',
-                    'port' => defined('DB_PORT') ? DB_PORT : 'unknown',
-                ];
-                // KPIs reales del nuevo esquema (tablas en MAYÚSCULAS)
-                $q1 = $conn->query('SELECT COUNT(*) AS c FROM CLIENTES');
-                $q2 = $conn->query('SELECT COUNT(*) AS c FROM AGENTES');
-                $q3 = $conn->query('SELECT COUNT(*) AS c FROM PROPIEDADES');
-                $q4 = $conn->query('SELECT COUNT(*) AS c, COALESCE(SUM(monto),0) s FROM TRANSACCIONES');
-                $q5 = $conn->query('SELECT COUNT(*) AS c FROM INTERACCIONES');
-                if ($q1 && $q2 && $q3 && $q4 && $q5) {
-                        $kpis['clientes'] = (int)$q1->fetch_assoc()['c'];
-                        $kpis['agentes'] = (int)$q2->fetch_assoc()['c'];
-                        $kpis['propiedades'] = (int)$q3->fetch_assoc()['c'];
-                        $r4 = $q4->fetch_assoc();
-                        $kpis['transacciones'] = (int)$r4['c'];
-                        $kpis['monto_total_trans'] = (float)$r4['s'];
-                        $kpis['interacciones'] = (int)$q5->fetch_assoc()['c'];
-                }
-                if ($q1) $q1->free(); if ($q2) $q2->free(); if ($q3) $q3->free(); if ($q4) $q4->free(); if ($q5) $q5->free();
+    $js['db'] = [
+        'name' => defined('DB_NAME') ? DB_NAME : 'unknown',
+        'host' => defined('DB_HOST') ? DB_HOST : 'unknown',
+        'port' => defined('DB_PORT') ? DB_PORT : 'unknown',
+    ];
+    // KPIs reales del nuevo esquema (tablas en MAYÚSCULAS)
+    $q1 = $conn->query('SELECT COUNT(*) AS c FROM CLIENTES');
+    $q2 = $conn->query('SELECT COUNT(*) AS c FROM AGENTES');
+    $q3 = $conn->query('SELECT COUNT(*) AS c FROM PROPIEDADES');
+    $q4 = $conn->query('SELECT COUNT(*) AS c, COALESCE(SUM(monto),0) s FROM TRANSACCIONES');
+    $q5 = $conn->query('SELECT COUNT(*) AS c FROM INTERACCIONES');
+    if ($q1 && $q2 && $q3 && $q4 && $q5) {
+        $kpis['clientes'] = (int)$q1->fetch_assoc()['c'];
+        $kpis['agentes'] = (int)$q2->fetch_assoc()['c'];
+        $kpis['propiedades'] = (int)$q3->fetch_assoc()['c'];
+        $r4 = $q4->fetch_assoc();
+        $kpis['transacciones'] = (int)$r4['c'];
+        $kpis['monto_total_trans'] = (float)$r4['s'];
+        $kpis['interacciones'] = (int)$q5->fetch_assoc()['c'];
+    }
+    if ($q1) $q1->free();
+    if ($q2) $q2->free();
+    if ($q3) $q3->free();
+    if ($q4) $q4->free();
+    if ($q5) $q5->free();
 
     // Distribuciones
     $propPorTipo = fetch_key_value($conn, "SELECT tipo, COUNT(*) cnt FROM PROPIEDADES GROUP BY tipo ORDER BY cnt DESC", 'tipo', 'cnt');
@@ -147,19 +151,20 @@ if ($db_ok) {
     // Top ciudad de clientes
     $clientesPorCiudad = fetch_key_value($conn, "SELECT ciudad, COUNT(*) cnt FROM CLIENTES GROUP BY ciudad ORDER BY cnt DESC LIMIT 10", 'ciudad', 'cnt');
 
-                // Características y etiquetas populares
-                $caractPopulares = fetch_key_value(
-                        $conn,
-                        "SELECT c.nombre, COUNT(*) cnt
+    // Características y etiquetas populares
+    $caractPopulares = fetch_key_value(
+        $conn,
+        "SELECT c.nombre, COUNT(*) cnt
                          FROM propiedad_caracteristica pc
                          JOIN caracteristicas c ON c.id_caracteristica=pc.id_caracteristica
                          WHERE pc.valor IN ('Sí','Si','YES','Yes','1','true')
                          GROUP BY c.nombre ORDER BY cnt DESC LIMIT 10",
-                        'nombre','cnt'
-                );
-                $etiquetasPopulares = fetch_key_value(
-                        $conn,
-                        "SELECT e.nombre, COUNT(*) cnt
+        'nombre',
+        'cnt'
+    );
+    $etiquetasPopulares = fetch_key_value(
+        $conn,
+        "SELECT e.nombre, COUNT(*) cnt
                          FROM propiedad_etiqueta pe
                          JOIN etiquetas e ON e.id_etiqueta=pe.id_etiqueta
                          GROUP BY e.nombre ORDER BY cnt DESC LIMIT 10",
@@ -177,51 +182,51 @@ if ($db_ok) {
         $usingSample = true;
     }
 
-                // Datos para tablas de consultas
-                $clientesData = [];
-                $propiedadesData = [];
-                $interaccionesData = [];
+    // Datos para tablas de consultas
+    $clientesData = [];
+    $propiedadesData = [];
+    $interaccionesData = [];
 
-                if ($conn) {
-                    $res1 = $conn->query("SELECT * FROM CLIENTES LIMIT $limit OFFSET $offset1");
-                    if ($res1) {
-                        while ($row = $res1->fetch_assoc()) {
-                            $clientesData[] = $row;
-                        }
-                        $res1->free();
-                    }
-                    $totalClientes = 0;
-                    if ($res = $conn->query("SELECT COUNT(*) as c FROM CLIENTES")) {
-                        $totalClientes = $res->fetch_assoc()['c'];
-                        $res->free();
-                    }
+    if ($conn) {
+        $res1 = $conn->query("SELECT * FROM CLIENTES LIMIT $limit OFFSET $offset1");
+        if ($res1) {
+            while ($row = $res1->fetch_assoc()) {
+                $clientesData[] = $row;
+            }
+            $res1->free();
+        }
+        $totalClientes = 0;
+        if ($res = $conn->query("SELECT COUNT(*) as c FROM CLIENTES")) {
+            $totalClientes = $res->fetch_assoc()['c'];
+            $res->free();
+        }
 
-                    $res2 = $conn->query("SELECT * FROM PROPIEDADES LIMIT $limit OFFSET $offset2");
-                    if ($res2) {
-                        while ($row = $res2->fetch_assoc()) {
-                            $propiedadesData[] = $row;
-                        }
-                        $res2->free();
-                    }
-                    $totalPropiedades = 0;
-                    if ($res = $conn->query("SELECT COUNT(*) as c FROM PROPIEDADES")) {
-                        $totalPropiedades = $res->fetch_assoc()['c'];
-                        $res->free();
-                    }
+        $res2 = $conn->query("SELECT * FROM PROPIEDADES LIMIT $limit OFFSET $offset2");
+        if ($res2) {
+            while ($row = $res2->fetch_assoc()) {
+                $propiedadesData[] = $row;
+            }
+            $res2->free();
+        }
+        $totalPropiedades = 0;
+        if ($res = $conn->query("SELECT COUNT(*) as c FROM PROPIEDADES")) {
+            $totalPropiedades = $res->fetch_assoc()['c'];
+            $res->free();
+        }
 
-                    $res3 = $conn->query("SELECT * FROM INTERACCIONES LIMIT $limit OFFSET $offset3");
-                    if ($res3) {
-                        while ($row = $res3->fetch_assoc()) {
-                            $interaccionesData[] = $row;
-                        }
-                        $res3->free();
-                    }
-                    $totalInteracciones = 0;
-                    if ($res = $conn->query("SELECT COUNT(*) as c FROM INTERACCIONES")) {
-                        $totalInteracciones = $res->fetch_assoc()['c'];
-                        $res->free();
-                    }
-                }
+        $res3 = $conn->query("SELECT * FROM INTERACCIONES LIMIT $limit OFFSET $offset3");
+        if ($res3) {
+            while ($row = $res3->fetch_assoc()) {
+                $interaccionesData[] = $row;
+            }
+            $res3->free();
+        }
+        $totalInteracciones = 0;
+        if ($res = $conn->query("SELECT COUNT(*) as c FROM INTERACCIONES")) {
+            $totalInteracciones = $res->fetch_assoc()['c'];
+            $res->free();
+        }
+    }
 }
 
 if ($db_ok && count($clientesData) == 0) {
@@ -244,23 +249,23 @@ if ($db_ok && count($clientesData) == 0) {
 }
 
 if (!$db_ok) {
-        $usingSample = true;
-        // Datos demo para tablas
-        $clientesData = [
-            ['id_cliente' => 1, 'nombre' => 'Juan', 'apellido' => 'Pérez', 'email' => 'juan@example.com', 'telefono' => '123456789', 'ciudad' => 'Rosario'],
-            ['id_cliente' => 2, 'nombre' => 'María', 'apellido' => 'Gómez', 'email' => 'maria@example.com', 'telefono' => '987654321', 'ciudad' => 'Santa Fe'],
-        ];
-        $propiedadesData = [
-            ['id_propiedad' => 1, 'titulo' => 'Casa con pileta', 'tipo' => 'casa', 'precio' => 250000, 'estado' => 'disponible', 'id_agente' => 1],
-            ['id_propiedad' => 2, 'titulo' => 'Departamento céntrico', 'tipo' => 'departamento', 'precio' => 150000, 'estado' => 'disponible', 'id_agente' => 2],
-        ];
-        $interaccionesData = [
-            ['id_interaccion' => 1, 'medio' => 'Teléfono', 'fecha_interaccion' => '2023-01-01', 'id_propiedad' => 1, 'id_cliente' => 1],
-            ['id_interaccion' => 2, 'medio' => 'Email', 'fecha_interaccion' => '2023-01-02', 'id_propiedad' => 2, 'id_cliente' => 2],
-        ];
-        $totalClientes = count($clientesData);
-        $totalPropiedades = count($propiedadesData);
-        $totalInteracciones = count($interaccionesData);
+    $usingSample = true;
+    // Datos demo para tablas
+    $clientesData = [
+        ['id_cliente' => 1, 'nombre' => 'Juan', 'apellido' => 'Pérez', 'email' => 'juan@example.com', 'telefono' => '123456789', 'ciudad' => 'Rosario'],
+        ['id_cliente' => 2, 'nombre' => 'María', 'apellido' => 'Gómez', 'email' => 'maria@example.com', 'telefono' => '987654321', 'ciudad' => 'Santa Fe'],
+    ];
+    $propiedadesData = [
+        ['id_propiedad' => 1, 'titulo' => 'Casa con pileta', 'tipo' => 'casa', 'precio' => 250000, 'estado' => 'disponible', 'id_agente' => 1],
+        ['id_propiedad' => 2, 'titulo' => 'Departamento céntrico', 'tipo' => 'departamento', 'precio' => 150000, 'estado' => 'disponible', 'id_agente' => 2],
+    ];
+    $interaccionesData = [
+        ['id_interaccion' => 1, 'medio' => 'Teléfono', 'fecha_interaccion' => '2023-01-01', 'id_propiedad' => 1, 'id_cliente' => 1],
+        ['id_interaccion' => 2, 'medio' => 'Email', 'fecha_interaccion' => '2023-01-02', 'id_propiedad' => 2, 'id_cliente' => 2],
+    ];
+    $totalClientes = count($clientesData);
+    $totalPropiedades = count($propiedadesData);
+    $totalInteracciones = count($interaccionesData);
 }
 
 $js['clientesData'] = $clientesData;
@@ -338,9 +343,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     exit;
 }
 
-// La conexión se cerrará automáticamente al finalizar el script.
+if ($conn) {
+    @$conn->close();
+}
 
-
+// Preparar datos para JS
 ?>
 <!doctype html>
 <html lang="es">
@@ -397,169 +404,74 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
         <h2 style="color:var(--text); margin-top:40px;">Consultas SQL y Datos de Tablas</h2>
         <p style="color:var(--muted);">A continuación se muestran las tablas crudas de la base de datos, con límite 10 y paginación si es necesario.</p>
 
-    <div class="sql-section" style="display:flex;flex-direction:column;gap:20px;margin-top:20px;">
+        <div class="sql-section" style="display:flex;flex-direction:column;gap:20px;margin-top:20px;">
             <div class="card sql-card sql-accent-1" style="width:100%">
                 <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect x="3" y="4" width="18" height="4" rx="1" fill="#06b6d4"></rect>
-                    <rect x="3" y="10" width="12" height="4" rx="1" fill="#22c55e"></rect>
-                    <rect x="3" y="16" width="18" height="4" rx="1" fill="#84cc16"></rect>
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#06b6d4" stroke-width="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="3" y1="15" x2="21" y2="15" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="9" y1="3" x2="9" y2="21" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="15" y1="3" x2="15" y2="21" stroke="#06b6d4" stroke-width="2"></line>
                 </svg>
                 <div class="sql-content">
-                    <h3 style="color:var(--text);margin:0">Consulta 1: Clientes con sus Transacciones (une CLIENTES y TRANSACCIONES)</h3>
-                    <pre class="sql-sqltext">SELECT CLIENTES.nombre,
-    CLIENTES.apellido,
-    TRANSACCIONES.tipo,
-    TRANSACCIONES.monto
-FROM CLIENTES
-LEFT JOIN TRANSACCIONES ON CLIENTES.id_cliente = TRANSACCIONES.id_cliente
-LIMIT 10</pre>
-                    <div style="overflow-x:auto; margin-top:8px;">
+                    <h3 style="color:var(--text);margin:0">Consulta 1: Tabla clientes</h3>
+                    <pre class="sql-sqltext">SELECT * FROM clientes LIMIT 10</pre>
+                    <div class="table-scroll" style="margin-top:8px;">
                         <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                            <thead>
-                                <tr style="background:#1f2937;">
-                                    <th style="padding:8px; border:1px solid #374151;">Nombre</th>
-                                    <th style="padding:8px; border:1px solid #374151;">Apellido</th>
-                                    <th style="padding:8px; border:1px solid #374151;">Tipo Transacción</th>
-                                    <th style="padding:8px; border:1px solid #374151;">Monto</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableClientesTrans"></tbody>
+                            <thead id="theadClientes" style="background:#1f2937;"></thead>
+                            <tbody id="tbodyClientes"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
+            <div id="paginationClientes" class="pagination"></div>
 
             <div class="card sql-card sql-accent-2" style="width:100%">
                 <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="12" cy="7" r="3" fill="#f59e0b"></circle>
-                    <rect x="6" y="12" width="12" height="6" rx="2" fill="#f97316"></rect>
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#f59e0b" stroke-width="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="#f59e0b" stroke-width="2"></line>
+                    <line x1="3" y1="15" x2="21" y2="15" stroke="#f59e0b" stroke-width="2"></line>
+                    <line x1="9" y1="3" x2="9" y2="21" stroke="#f59e0b" stroke-width="2"></line>
+                    <line x1="15" y1="3" x2="15" y2="21" stroke="#f59e0b" stroke-width="2"></line>
                 </svg>
                 <div class="sql-content">
-                    <h3 style="color:var(--text);margin:0">Consulta 2: Propiedades con sus Agentes (une PROPIEDADES y AGENTES)</h3>
-                    <pre class="sql-sqltext">SELECT PROPIEDADES.titulo,
-    PROPIEDADES.tipo,
-    AGENTES.nombre AS agente
-FROM PROPIEDADES
-JOIN AGENTES ON PROPIEDADES.id_agente = AGENTES.id_agente
-LIMIT 10</pre>
-                    <div style="overflow-x:auto; margin-top:8px;">
+                    <h3 style="color:var(--text);margin:0">Consulta 2: Tabla propiedades</h3>
+                    <pre class="sql-sqltext">SELECT * FROM propiedades LIMIT 10</pre>
+                    <div class="table-scroll" style="margin-top:8px;">
                         <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                            <thead>
-                                <tr style="background:#1f2937;">
-                                    <th style="padding:8px; border:1px solid #374151;">Título Propiedad</th>
-                                    <th style="padding:8px; border:1px solid #374151;">Tipo</th>
-                                    <th style="padding:8px; border:1px solid #374151;">Agente</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablePropAgentes"></tbody>
+                            <thead id="theadPropiedades" style="background:#1f2937;"></thead>
+                            <tbody id="tbodyPropiedades"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
+            <div id="paginationPropiedades" class="pagination"></div>
 
             <div class="card sql-card sql-accent-3" style="width:100%">
                 <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M4 7h16v3H4z" fill="#ef4444"></path>
-                    <path d="M4 12h10v7H4z" fill="#f97316"></path>
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#ef4444" stroke-width="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="#ef4444" stroke-width="2"></line>
+                    <line x1="3" y1="15" x2="21" y2="15" stroke="#ef4444" stroke-width="2"></line>
+                    <line x1="9" y1="3" x2="9" y2="21" stroke="#ef4444" stroke-width="2"></line>
+                    <line x1="15" y1="3" x2="15" y2="21" stroke="#ef4444" stroke-width="2"></line>
                 </svg>
                 <div class="sql-content">
-                    <h3 style="color:var(--text);margin:0">Consulta 3: Interacciones con Propiedades y Clientes (une INTERACCIONES, PROPIEDADES, CLIENTES)</h3>
-                    <pre class="sql-sqltext">SELECT INTERACCIONES.medio,
-    PROPIEDADES.titulo AS propiedad,
-    CLIENTES.nombre AS cliente
-FROM INTERACCIONES
-JOIN PROPIEDADES ON INTERACCIONES.id_propiedad = PROPIEDADES.id_propiedad
-JOIN CLIENTES ON INTERACCIONES.id_cliente = CLIENTES.id_cliente
-LIMIT 10</pre>
-                    <div style="overflow-x:auto; margin-top:8px;">
+                    <h3 style="color:var(--text);margin:0">Consulta 3: Tabla interacciones</h3>
+                    <pre class="sql-sqltext">SELECT * FROM interacciones LIMIT 10</pre>
+                    <div class="table-scroll" style="margin-top:8px;">
                         <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                            <thead>
-                                <tr style="background:#1f2937;">
-                                    <th style="padding:8px; border:1px solid #374151;">Medio</th>
-                                    <th style="padding:8px; border:1px solid #374151;">Propiedad</th>
-                                    <th style="padding:8px; border:1px solid #374151;">Cliente</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableInterPropCli"></tbody>
+                            <thead id="theadInteracciones" style="background:#1f2937;"></thead>
+                            <tbody id="tbodyInteracciones"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
+            <div id="paginationInteracciones" class="pagination"></div>
         </div>
-
-        <div class="foot">
-            <span class="badge">DB: <?= htmlspecialchars($js['db']['name']) ?> @ <?= htmlspecialchars($js['db']['host']) ?>:<?= htmlspecialchars((string)$js['db']['port']) ?></span>
-            <?php if ($js['usingSample']): ?>
-
-    <div class="sql-section" style="display:flex;flex-direction:column;gap:20px;margin-top:20px;">
-        <div class="card sql-card sql-accent-1" style="width:100%">
-            <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#06b6d4" stroke-width="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9" stroke="#06b6d4" stroke-width="2"></line>
-                <line x1="3" y1="15" x2="21" y2="15" stroke="#06b6d4" stroke-width="2"></line>
-                <line x1="9" y1="3" x2="9" y2="21" stroke="#06b6d4" stroke-width="2"></line>
-                <line x1="15" y1="3" x2="15" y2="21" stroke="#06b6d4" stroke-width="2"></line>
-            </svg>
-            <div class="sql-content">
-          <h3 style="color:var(--text);margin:0">Consulta 1: Tabla clientes</h3>
-          <pre class="sql-sqltext">SELECT * FROM clientes LIMIT 10</pre>
-                <div class="table-scroll" style="margin-top:8px;">
-                    <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                        <thead id="theadClientes" style="background:#1f2937;"></thead>
-                        <tbody id="tbodyClientes"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div id="paginationClientes" class="pagination"></div>
-
-        <div class="card sql-card sql-accent-2" style="width:100%">
-            <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#f59e0b" stroke-width="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9" stroke="#f59e0b" stroke-width="2"></line>
-                <line x1="3" y1="15" x2="21" y2="15" stroke="#f59e0b" stroke-width="2"></line>
-                <line x1="9" y1="3" x2="9" y2="21" stroke="#f59e0b" stroke-width="2"></line>
-                <line x1="15" y1="3" x2="15" y2="21" stroke="#f59e0b" stroke-width="2"></line>
-            </svg>
-            <div class="sql-content">
-          <h3 style="color:var(--text);margin:0">Consulta 2: Tabla propiedades</h3>
-          <pre class="sql-sqltext">SELECT * FROM propiedades LIMIT 10</pre>
-                <div class="table-scroll" style="margin-top:8px;">
-                    <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                        <thead id="theadPropiedades" style="background:#1f2937;"></thead>
-                        <tbody id="tbodyPropiedades"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div id="paginationPropiedades" class="pagination"></div>
-
-        <div class="card sql-card sql-accent-3" style="width:100%">
-            <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#ef4444" stroke-width="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9" stroke="#ef4444" stroke-width="2"></line>
-                <line x1="3" y1="15" x2="21" y2="15" stroke="#ef4444" stroke-width="2"></line>
-                <line x1="9" y1="3" x2="9" y2="21" stroke="#ef4444" stroke-width="2"></line>
-                <line x1="15" y1="3" x2="15" y2="21" stroke="#ef4444" stroke-width="2"></line>
-            </svg>
-            <div class="sql-content">
-          <h3 style="color:var(--text);margin:0">Consulta 3: Tabla interacciones</h3>
-          <pre class="sql-sqltext">SELECT * FROM interacciones LIMIT 10</pre>
-                <div class="table-scroll" style="margin-top:8px;">
-                    <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                        <thead id="theadInteracciones" style="background:#1f2937;"></thead>
-                        <tbody id="tbodyInteracciones"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div id="paginationInteracciones" class="pagination"></div>
-    </div>
 
         <div class="foot">
             <span class="badge">DB: <?= isset($js['db']['name']) ? htmlspecialchars($js['db']['name']) : 'unknown' ?> @ <?= isset($js['db']['host']) ? htmlspecialchars($js['db']['host']) : 'unknown' ?>:<?= isset($js['db']['port']) ? htmlspecialchars((string)$js['db']['port']) : 'unknown' ?></span>
             <?php if (isset($js['usingSample']) && $js['usingSample']): ?>
-
                 <span class="badge">Datos de ejemplo</span>
             <?php endif; ?>
         </div>
@@ -572,15 +484,31 @@ LIMIT 10</pre>
     <script>
         const DATA = <?php echo $jsonData; ?>;
 
-        if (!DATA.kpis) DATA.kpis = {clientes: 0, agentes: 0, propiedades: 0, transacciones: 0, monto_total_trans: 0, interacciones: 0};
+        if (!DATA.kpis) DATA.kpis = {
+            clientes: 0,
+            agentes: 0,
+            propiedades: 0,
+            transacciones: 0,
+            monto_total_trans: 0,
+            interacciones: 0
+        };
         if (!DATA.clientesPorCiudad) DATA.clientesPorCiudad = {};
         if (!DATA.propPorTipo) DATA.propPorTipo = {};
-        if (!DATA.interPorDia) DATA.interPorDia = {labels: [], data: []};
+        if (!DATA.interPorDia) DATA.interPorDia = {
+            labels: [],
+            data: []
+        };
         if (!DATA.interPorMedio) DATA.interPorMedio = {};
         if (!DATA.propPorEstado) DATA.propPorEstado = {};
         if (!DATA.transPorTipo) DATA.transPorTipo = {};
-        if (!DATA.transPorDia) DATA.transPorDia = {labels: [], data: []};
-        if (!DATA.citasPorDia) DATA.citasPorDia = {labels: [], data: []};
+        if (!DATA.transPorDia) DATA.transPorDia = {
+            labels: [],
+            data: []
+        };
+        if (!DATA.citasPorDia) DATA.citasPorDia = {
+            labels: [],
+            data: []
+        };
         if (!DATA.caractPopulares) DATA.caractPopulares = {};
         if (!DATA.etiquetasPopulares) DATA.etiquetasPopulares = {};
         if (!DATA.warnings) DATA.warnings = [];
@@ -610,358 +538,11 @@ LIMIT 10</pre>
         document.getElementById('kpi-interacciones').textContent = num(DATA.kpis.interacciones);
 
         // Llenar tablas
-        const palette = ['#60a5fa', '#34d399', '#fbbf24', '#f472b6', '#a78bfa', '#ef4444', '#22d3ee', '#84cc16'];
-        const ctx = id => document.getElementById(id).getContext('2d');
-
-        // Clientes (placeholder): ciudades
-        const cciLabels = Object.keys(DATA.clientesPorCiudad);
-        const cciData = Object.values(DATA.clientesPorCiudad);
-        new Chart(ctx('chartClientes'), {
-            type: 'bar',
-            data: {
-                labels: cciLabels,
-                datasets: [{
-                    label: 'Clientes',
-                    data: cciData,
-                    backgroundColor: '#84cc16'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Propiedades por tipo (bar)
-        const pptLabels = Object.keys(DATA.propPorTipo);
-        const pptData = Object.values(DATA.propPorTipo);
-        new Chart(ctx('chartProps'), {
-            type: 'bar',
-            data: {
-                labels: pptLabels,
-                datasets: [{
-                    label: 'Cantidad',
-                    data: pptData,
-                    backgroundColor: '#34d399'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Interacciones por día (line)
-        new Chart(ctx('chartInterDia'), {
-            type: 'line',
-            data: {
-                labels: DATA.interPorDia.labels,
-                datasets: [{
-                    label: 'Interacciones',
-                    data: DATA.interPorDia.data,
-                    borderColor: '#60a5fa',
-                    backgroundColor: 'rgba(96,165,250,.2)',
-                    tension: .2,
-                    fill: true
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Interacciones por medio (pie)
-        const iptLabels = Object.keys(DATA.interPorMedio);
-        const iptData = Object.values(DATA.interPorMedio);
-        new Chart(ctx('chartInterTipo'), {
-            type: 'pie',
-            data: {
-                labels: iptLabels,
-                datasets: [{
-                    data: iptData,
-                    backgroundColor: palette.slice(0, iptLabels.length)
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Propiedades por estado
-        const pesLabels = Object.keys(DATA.propPorEstado);
-        const pesData = Object.values(DATA.propPorEstado);
-        new Chart(ctx('chartPropEstado'), {
-            type: 'doughnut',
-            data: {
-                labels: pesLabels,
-                datasets: [{
-                    data: pesData,
-                    backgroundColor: palette.slice(0, pesLabels.length)
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Transacciones por tipo
-        const tptLabels = Object.keys(DATA.transPorTipo);
-        const tptData = Object.values(DATA.transPorTipo);
-        new Chart(ctx('chartTransTipo'), {
-            type: 'bar',
-            data: {
-                labels: tptLabels,
-                datasets: [{
-                    label: 'Cantidad',
-                    data: tptData,
-                    backgroundColor: '#22d3ee'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Transacciones por día
-        new Chart(ctx('chartTransDia'), {
-            type: 'line',
-            data: {
-                labels: DATA.transPorDia.labels,
-                datasets: [{
-                    label: 'Transacciones',
-                    data: DATA.transPorDia.data,
-                    borderColor: '#a78bfa',
-                    backgroundColor: 'rgba(167,139,250,.2)',
-                    tension: .2,
-                    fill: true
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Citas por día
-        new Chart(ctx('chartCitasDia'), {
-            type: 'line',
-            data: {
-                labels: DATA.citasPorDia.labels,
-                datasets: [{
-                    label: 'Citas',
-                    data: DATA.citasPorDia.data,
-                    borderColor: '#fbbf24',
-                    backgroundColor: 'rgba(251,191,36,.2)',
-                    tension: .2,
-                    fill: true
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Características populares
-        const carLabels = Object.keys(DATA.caractPopulares);
-        const carData = Object.values(DATA.caractPopulares);
-        new Chart(ctx('chartCaract'), {
-            type: 'bar',
-            data: {
-                labels: carLabels,
-                datasets: [{
-                    label: 'Cantidad',
-                    data: carData,
-                    backgroundColor: '#34d399'
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Etiquetas populares
-        const etiLabels = Object.keys(DATA.etiquetasPopulares);
-        const etiData = Object.values(DATA.etiquetasPopulares);
-        new Chart(ctx('chartEtiq'), {
-            type: 'bar',
-            data: {
-                labels: etiLabels,
-                datasets: [{
-                    label: 'Cantidad',
-                    data: etiData,
-                    backgroundColor: '#60a5fa'
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        },
-                        beginAtZero: true
-                    },
-                    y: {
-                        ticks: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e5e7eb'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Llenar tablas
-        const tableMap = {'page1':'clientes', 'page2':'propiedades', 'page3':'interacciones'};
+        const tableMap = {
+            'page1': 'clientes',
+            'page2': 'propiedades',
+            'page3': 'interacciones'
+        };
         const fillTable = (theadId, tbodyId, data, total, page, param) => {
             console.log('Filling table:', theadId, tbodyId, 'data length:', data ? data.length : 'null', 'total:', total, 'page:', page);
             const thead = document.getElementById(theadId);
@@ -991,13 +572,13 @@ LIMIT 10</pre>
             console.log('Changing page:', table, newPage);
             const param = table === 'clientes' ? 'page1' : table === 'propiedades' ? 'page2' : 'page3';
             fetch('?ajax=1&table=' + table + '&' + param + '=' + newPage)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Received data for', table, ':', data);
-                const theadId = 'thead' + table.charAt(0).toUpperCase() + table.slice(1);
-                const tbodyId = 'tbody' + table.charAt(0).toUpperCase() + table.slice(1);
-                fillTable(theadId, tbodyId, data.data, data.total, data.page, param);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Received data for', table, ':', data);
+                    const theadId = 'thead' + table.charAt(0).toUpperCase() + table.slice(1);
+                    const tbodyId = 'tbody' + table.charAt(0).toUpperCase() + table.slice(1);
+                    fillTable(theadId, tbodyId, data.data, data.total, data.page, param);
+                });
         }
 
         // Ensure data exists

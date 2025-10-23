@@ -101,9 +101,6 @@ function formatDate($date)
                 <p class="subtitle">Organiza cada contacto según su estado y coordina las próximas acciones del equipo.</p>
             </div>
             <div class="header-actions">
-                <button type="button" id="theme-toggle" class="btn btn-ghost" title="Cambiar modo">
-                    <span id="theme-icon">🌙</span> Modo
-                </button>
                 <button type="button" class="btn btn-secondary">Exportar resumen</button>
                 <button type="button" class="btn btn-primary">+ Nueva interacción</button>
             </div>
@@ -244,29 +241,11 @@ function formatDate($date)
         </div>
     </div>
     <script>
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const body = document.body;
         const modal = document.getElementById('modal');
         const modalClose = document.querySelector('.modal-close');
 
         // Ensure modal is hidden on load
         modal.style.display = 'none';
-
-        // Cargar preferencia guardada
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            body.classList.add('light-mode');
-            themeIcon.textContent = '☀️';
-        }
-
-        // Alternar tema
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('light-mode');
-            const isLight = body.classList.contains('light-mode');
-            themeIcon.textContent = isLight ? '☀️' : '🌙';
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        });
 
         // Modal
         document.querySelectorAll('.kanban-card').forEach(card => {
