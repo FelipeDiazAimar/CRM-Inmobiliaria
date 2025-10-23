@@ -27,7 +27,7 @@ body.theme-light .sql-section .card::-webkit-scrollbar-thumb{background:rgba(34,
 body.theme-light .sql-sqltext{background:#f9fafb}
 .sql-card:hover .sql-sqltext{display:block; opacity:1; visibility:visible; color:var(--accent)}
 table th, table td{vertical-align:middle}
-body.theme-light table th{color:#ffffff}
+body.theme-light table th{color:#111827}
 /* Pagination buttons */
 .pagination-btn {
     background: var(--accent);

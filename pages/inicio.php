@@ -229,6 +229,47 @@ if ($db_ok) {
     }
 }
 
+$extraTables = [];
+$extraTablesData = [];
+$extraTablesTotals = [];
+$allowedTables = ['CLIENTES', 'PROPIEDADES', 'INTERACCIONES'];
+
+if ($conn) {
+    $result = $conn->query("SHOW TABLES");
+    if ($result) {
+        while ($row = $result->fetch_row()) {
+            $tableName = $row[0];
+            if (!in_array(strtoupper($tableName), ['CLIENTES', 'PROPIEDADES', 'INTERACCIONES'])) {
+                $extraTables[] = $tableName;
+            }
+        }
+        $result->free();
+    }
+
+    $extraTables = array_slice($extraTables, 0, 9);
+
+    foreach ($extraTables as $tableName) {
+        $data = [];
+        if ($res = $conn->query("SELECT * FROM `$tableName` LIMIT 10")) {
+            while ($row = $res->fetch_assoc()) {
+                $data[] = $row;
+            }
+            $res->free();
+        }
+
+        $extraTablesData[$tableName] = $data;
+
+        $total = 0;
+        if ($res = $conn->query("SELECT COUNT(*) as c FROM `$tableName`")) {
+            $total = (int)$res->fetch_assoc()['c'];
+            $res->free();
+        }
+        $extraTablesTotals[$tableName] = $total;
+    }
+
+    $allowedTables = array_merge($allowedTables, $extraTables);
+}
+
 if ($db_ok && count($clientesData) == 0) {
     $usingSample = true;
     $clientesData = [
@@ -280,6 +321,9 @@ $js['page2'] = 1;
 $js['page3'] = 1;
 $js['usingSample'] = $usingSample;
 $js['warnings'] = $warnings;
+$js['extraTables'] = $extraTables;
+$js['extraTablesData'] = $extraTablesData;
+$js['extraTablesTotals'] = $extraTablesTotals;
 
 $jsonData = json_encode($js, JSON_UNESCAPED_UNICODE);
 if ($jsonData === false) {
@@ -287,57 +331,66 @@ if ($jsonData === false) {
 }
 
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
-    $table = $_GET['table'] ?? '';
-    $response = [];
-    if ($table == 'clientes') {
-        $page = $_GET['page1'] ?? 1;
-        $offset = ($page - 1) * 10;
-        $data = [];
-        if ($conn) {
-            $res = $conn->query("SELECT * FROM CLIENTES LIMIT 10 OFFSET $offset");
-            if ($res) {
-                while ($row = $res->fetch_assoc()) {
-                    $data[] = $row;
-                }
-                $res->free();
-            }
-        } else {
-            $data = array_slice($clientesData, $offset, 10);
+    $tableParam = $_GET['table'] ?? '';
+    $tableName = '';
+    foreach ($allowedTables as $allowed) {
+        if (strcasecmp($allowed, $tableParam) === 0) {
+            $tableName = $allowed;
+            break;
         }
-        $response = ['data' => $data, 'total' => $totalClientes, 'page' => $page];
-    } elseif ($table == 'propiedades') {
-        $page = $_GET['page2'] ?? 1;
-        $offset = ($page - 1) * 10;
-        $data = [];
-        if ($conn) {
-            $res = $conn->query("SELECT * FROM PROPIEDADES LIMIT 10 OFFSET $offset");
-            if ($res) {
-                while ($row = $res->fetch_assoc()) {
-                    $data[] = $row;
-                }
-                $res->free();
-            }
-        } else {
-            $data = array_slice($propiedadesData, $offset, 10);
-        }
-        $response = ['data' => $data, 'total' => $totalPropiedades, 'page' => $page];
-    } elseif ($table == 'interacciones') {
-        $page = $_GET['page3'] ?? 1;
-        $offset = ($page - 1) * 10;
-        $data = [];
-        if ($conn) {
-            $res = $conn->query("SELECT * FROM INTERACCIONES LIMIT 10 OFFSET $offset");
-            if ($res) {
-                while ($row = $res->fetch_assoc()) {
-                    $data[] = $row;
-                }
-                $res->free();
-            }
-        } else {
-            $data = array_slice($interaccionesData, $offset, 10);
-        }
-        $response = ['data' => $data, 'total' => $totalInteracciones, 'page' => $page];
     }
+
+    if ($tableName === '') {
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode(['error' => 'Tabla no permitida']);
+        exit;
+    }
+
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    if ($page < 1) {
+        $page = 1;
+    }
+    $offset = ($page - 1) * 10;
+
+    $data = [];
+    $total = 0;
+    $tableKey = strtoupper($tableName);
+
+    if ($conn) {
+        if ($res = $conn->query("SELECT * FROM `$tableName` LIMIT 10 OFFSET $offset")) {
+            while ($row = $res->fetch_assoc()) {
+                $data[] = $row;
+            }
+            $res->free();
+        }
+        if ($res = $conn->query("SELECT COUNT(*) as c FROM `$tableName`")) {
+            $total = (int)$res->fetch_assoc()['c'];
+            $res->free();
+        }
+    } else {
+        switch ($tableKey) {
+            case 'CLIENTES':
+                $total = $totalClientes;
+                $data = array_slice($clientesData, $offset, 10);
+                break;
+            case 'PROPIEDADES':
+                $total = $totalPropiedades;
+                $data = array_slice($propiedadesData, $offset, 10);
+                break;
+            case 'INTERACCIONES':
+                $total = $totalInteracciones;
+                $data = array_slice($interaccionesData, $offset, 10);
+                break;
+            default:
+                $baseData = $extraTablesData[$tableName] ?? [];
+                $total = count($baseData);
+                $data = array_slice($baseData, $offset, 10);
+                break;
+        }
+    }
+
+    $response = ['data' => $data, 'total' => $total, 'page' => $page];
     header('Content-Type: application/json');
     echo json_encode($response);
     exit;
@@ -418,7 +471,7 @@ if ($conn) {
                     <pre class="sql-sqltext">SELECT * FROM clientes LIMIT 10</pre>
                     <div class="table-scroll" style="margin-top:8px;">
                         <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                            <thead id="theadClientes" style="background:#1f2937;"></thead>
+                            <thead id="theadClientes" style="background:var(--thead-bg);"></thead>
                             <tbody id="tbodyClientes"></tbody>
                         </table>
                     </div>
@@ -426,20 +479,20 @@ if ($conn) {
             </div>
             <div id="paginationClientes" class="pagination"></div>
 
-            <div class="card sql-card sql-accent-2" style="width:100%">
+            <div class="card sql-card sql-accent-1" style="width:100%">
                 <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#f59e0b" stroke-width="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9" stroke="#f59e0b" stroke-width="2"></line>
-                    <line x1="3" y1="15" x2="21" y2="15" stroke="#f59e0b" stroke-width="2"></line>
-                    <line x1="9" y1="3" x2="9" y2="21" stroke="#f59e0b" stroke-width="2"></line>
-                    <line x1="15" y1="3" x2="15" y2="21" stroke="#f59e0b" stroke-width="2"></line>
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#06b6d4" stroke-width="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="3" y1="15" x2="21" y2="15" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="9" y1="3" x2="9" y2="21" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="15" y1="3" x2="15" y2="21" stroke="#06b6d4" stroke-width="2"></line>
                 </svg>
                 <div class="sql-content">
                     <h3 style="color:var(--text);margin:0">Consulta 2: Tabla propiedades</h3>
                     <pre class="sql-sqltext">SELECT * FROM propiedades LIMIT 10</pre>
                     <div class="table-scroll" style="margin-top:8px;">
                         <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                            <thead id="theadPropiedades" style="background:#1f2937;"></thead>
+                            <thead id="theadPropiedades" style="background:var(--thead-bg);"></thead>
                             <tbody id="tbodyPropiedades"></tbody>
                         </table>
                     </div>
@@ -447,26 +500,62 @@ if ($conn) {
             </div>
             <div id="paginationPropiedades" class="pagination"></div>
 
-            <div class="card sql-card sql-accent-3" style="width:100%">
+            <div class="card sql-card sql-accent-1" style="width:100%">
                 <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#ef4444" stroke-width="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9" stroke="#ef4444" stroke-width="2"></line>
-                    <line x1="3" y1="15" x2="21" y2="15" stroke="#ef4444" stroke-width="2"></line>
-                    <line x1="9" y1="3" x2="9" y2="21" stroke="#ef4444" stroke-width="2"></line>
-                    <line x1="15" y1="3" x2="15" y2="21" stroke="#ef4444" stroke-width="2"></line>
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#06b6d4" stroke-width="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="3" y1="15" x2="21" y2="15" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="9" y1="3" x2="9" y2="21" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="15" y1="3" x2="15" y2="21" stroke="#06b6d4" stroke-width="2"></line>
                 </svg>
                 <div class="sql-content">
                     <h3 style="color:var(--text);margin:0">Consulta 3: Tabla interacciones</h3>
                     <pre class="sql-sqltext">SELECT * FROM interacciones LIMIT 10</pre>
                     <div class="table-scroll" style="margin-top:8px;">
                         <table style="width:100%; border-collapse:collapse; color:var(--text);">
-                            <thead id="theadInteracciones" style="background:#1f2937;"></thead>
+                            <thead id="theadInteracciones" style="background:var(--thead-bg);"></thead>
                             <tbody id="tbodyInteracciones"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
             <div id="paginationInteracciones" class="pagination"></div>
+
+        <?php
+        $consultaNum = 4;
+        if (!empty($extraTables)) {
+            foreach ($extraTables as $index => $tableName) {
+                if ($consultaNum > 12) {
+                    break;
+                }
+                $suffix = 'Extra' . ($index + 1);
+        ?>
+            <div class="card sql-card sql-accent-1" style="width:100%">
+                <svg class="sql-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#06b6d4" stroke-width="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="3" y1="15" x2="21" y2="15" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="9" y1="3" x2="9" y2="21" stroke="#06b6d4" stroke-width="2"></line>
+                    <line x1="15" y1="3" x2="15" y2="21" stroke="#06b6d4" stroke-width="2"></line>
+                </svg>
+                <div class="sql-content">
+                    <h3 style="color:var(--text);margin:0">Consulta <?= $consultaNum; ?>: Tabla <?= htmlspecialchars($tableName); ?></h3>
+                    <pre class="sql-sqltext">SELECT * FROM <?= htmlspecialchars($tableName); ?> LIMIT 10</pre>
+                    <div class="table-scroll" style="margin-top:8px;">
+                        <table style="width:100%; border-collapse:collapse; color:var(--text);">
+                            <thead id="thead<?= $suffix; ?>" style="background:var(--thead-bg);"></thead>
+                            <tbody id="tbody<?= $suffix; ?>"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="pagination<?= $suffix; ?>" class="pagination"></div>
+        <?php
+                $consultaNum++;
+            }
+        }
+        ?>
+
         </div>
 
         <div class="foot">
@@ -537,66 +626,136 @@ if ($conn) {
         document.getElementById('kpi-monto').textContent = money(DATA.kpis.monto_total_trans ?? 0);
         document.getElementById('kpi-interacciones').textContent = num(DATA.kpis.interacciones);
 
-        // Llenar tablas
-        const tableMap = {
-            'page1': 'clientes',
-            'page2': 'propiedades',
-            'page3': 'interacciones'
-        };
-        const fillTable = (theadId, tbodyId, data, total, page, param) => {
-            console.log('Filling table:', theadId, tbodyId, 'data length:', data ? data.length : 'null', 'total:', total, 'page:', page);
-            const thead = document.getElementById(theadId);
-            const tbody = document.getElementById(tbodyId);
-            if (!data || data.length === 0) {
-                thead.innerHTML = '';
-                tbody.innerHTML = '<tr><td colspan="1" style="text-align:center; color:#94a3b8;">Sin datos</td></tr>';
-                return;
-            }
-            const headers = Object.keys(data[0]);
-            thead.innerHTML = '<tr>' + headers.map(h => '<th style="padding:8px; border:1px solid #374151;">' + h + '</th>').join('') + '</tr>';
-            tbody.innerHTML = data.map(row => '<tr>' + headers.map(h => '<td style="padding:8px; border:1px solid #374151;">' + (row[h] || '') + '</td>').join('') + '</tr>').join('');
-            // pagination
-            const paginationId = 'pagination' + theadId.replace('thead', '');
-            const paginationEl = document.getElementById(paginationId);
-            const table = tableMap[param];
-            let html = '';
-            const totalPages = Math.ceil(total / 10);
-            for (let p = 1; p <= totalPages; p++) {
-                const activeClass = p === page ? ' active' : '';
-                html += '<button class="pagination-btn' + activeClass + '" onclick="changePage(\'' + table + '\', ' + p + ')">' + p + '</button>';
-            }
-            paginationEl.innerHTML = html;
-        };
-
-        function changePage(table, newPage) {
-            console.log('Changing page:', table, newPage);
-            const param = table === 'clientes' ? 'page1' : table === 'propiedades' ? 'page2' : 'page3';
-            fetch('?ajax=1&table=' + table + '&' + param + '=' + newPage)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Received data for', table, ':', data);
-                    const theadId = 'thead' + table.charAt(0).toUpperCase() + table.slice(1);
-                    const tbodyId = 'tbody' + table.charAt(0).toUpperCase() + table.slice(1);
-                    fillTable(theadId, tbodyId, data.data, data.total, data.page, param);
-                });
-        }
-
-        // Ensure data exists
+        // Configuración de tablas
         if (!DATA.clientesData) DATA.clientesData = [];
         if (!DATA.propiedadesData) DATA.propiedadesData = [];
         if (!DATA.interaccionesData) DATA.interaccionesData = [];
-        if (!DATA.totalClientes) DATA.totalClientes = 0;
-        if (!DATA.totalPropiedades) DATA.totalPropiedades = 0;
-        if (!DATA.totalInteracciones) DATA.totalInteracciones = 0;
+        if (!Array.isArray(DATA.extraTables)) DATA.extraTables = [];
+        if (!DATA.extraTablesData) DATA.extraTablesData = {};
+        if (!DATA.extraTablesTotals) DATA.extraTablesTotals = {};
+        if (!DATA.totalClientes) DATA.totalClientes = DATA.clientesData.length;
+        if (!DATA.totalPropiedades) DATA.totalPropiedades = DATA.propiedadesData.length;
+        if (!DATA.totalInteracciones) DATA.totalInteracciones = DATA.interaccionesData.length;
         if (!DATA.page1) DATA.page1 = 1;
         if (!DATA.page2) DATA.page2 = 1;
         if (!DATA.page3) DATA.page3 = 1;
 
         console.log('DATA:', DATA);
 
-        fillTable('theadClientes', 'tbodyClientes', DATA.clientesData, DATA.totalClientes, DATA.page1, 'page1');
-        fillTable('theadPropiedades', 'tbodyPropiedades', DATA.propiedadesData, DATA.totalPropiedades, DATA.page2, 'page2');
-        fillTable('theadInteracciones', 'tbodyInteracciones', DATA.interaccionesData, DATA.totalInteracciones, DATA.page3, 'page3');
+        const rowsPerPage = 10;
+        const tableConfigs = [
+            {
+                key: 'clientes',
+                tableName: 'CLIENTES',
+                headId: 'theadClientes',
+                bodyId: 'tbodyClientes',
+                paginationId: 'paginationClientes',
+                data: DATA.clientesData,
+                total: DATA.totalClientes,
+                initialPage: DATA.page1
+            },
+            {
+                key: 'propiedades',
+                tableName: 'PROPIEDADES',
+                headId: 'theadPropiedades',
+                bodyId: 'tbodyPropiedades',
+                paginationId: 'paginationPropiedades',
+                data: DATA.propiedadesData,
+                total: DATA.totalPropiedades,
+                initialPage: DATA.page2
+            },
+            {
+                key: 'interacciones',
+                tableName: 'INTERACCIONES',
+                headId: 'theadInteracciones',
+                bodyId: 'tbodyInteracciones',
+                paginationId: 'paginationInteracciones',
+                data: DATA.interaccionesData,
+                total: DATA.totalInteracciones,
+                initialPage: DATA.page3
+            }
+        ];
+
+        DATA.extraTables.forEach((tableName, idx) => {
+            const suffix = `Extra${idx + 1}`;
+            tableConfigs.push({
+                key: `extra${idx + 1}`,
+                tableName,
+                headId: `thead${suffix}`,
+                bodyId: `tbody${suffix}`,
+                paginationId: `pagination${suffix}`,
+                data: (DATA.extraTablesData[tableName] || []),
+                total: (DATA.extraTablesTotals[tableName] ?? (DATA.extraTablesData[tableName] ? DATA.extraTablesData[tableName].length : 0)),
+                initialPage: 1
+            });
+        });
+
+        const configMap = {};
+
+        const formatCell = value => {
+            if (value === null || value === undefined) return '';
+            if (typeof value === 'object') {
+                try {
+                    return JSON.stringify(value);
+                } catch (err) {
+                    return '';
+                }
+            }
+            return value;
+        };
+
+        const renderTable = (config, data, total, page) => {
+            const thead = document.getElementById(config.headId);
+            const tbody = document.getElementById(config.bodyId);
+            const paginationEl = document.getElementById(config.paginationId);
+            if (!thead || !tbody || !paginationEl) return;
+
+            if (!data || data.length === 0) {
+                thead.innerHTML = '';
+                tbody.innerHTML = '<tr><td colspan="1" style="text-align:center; color:#94a3b8;">Sin datos</td></tr>';
+                paginationEl.innerHTML = '';
+                config.currentPage = page;
+                config.total = total;
+                return;
+            }
+
+            const headers = Object.keys(data[0]);
+            thead.innerHTML = '<tr>' + headers.map(h => '<th style="padding:8px; border:1px solid #374151;">' + h + '</th>').join('') + '</tr>';
+            tbody.innerHTML = data.map(row => '<tr>' + headers.map(h => '<td style="padding:8px; border:1px solid #374151;">' + formatCell(row[h]) + '</td>').join('') + '</tr>').join('');
+
+            const totalForCalc = total && total > 0 ? total : data.length;
+            const totalPages = Math.max(1, Math.ceil(totalForCalc / rowsPerPage));
+            let html = '';
+            for (let p = 1; p <= totalPages; p++) {
+                const activeClass = p === page ? ' active' : '';
+                html += '<button class="pagination-btn' + activeClass + '" onclick="changePage(\'' + config.key + '\',' + p + ')">' + p + '</button>';
+            }
+            paginationEl.innerHTML = totalPages > 0 ? html : '';
+
+            config.currentPage = page;
+            config.total = totalForCalc;
+        };
+
+        tableConfigs.forEach(config => {
+            configMap[config.key] = config;
+            renderTable(config, config.data, config.total, config.initialPage || 1);
+        });
+
+        function changePage(key, newPage) {
+            const config = configMap[key];
+            if (!config) return;
+            fetch('?ajax=1&table=' + encodeURIComponent(config.tableName) + '&page=' + newPage)
+                .then(response => response.json())
+                .then(response => {
+                    if (!response || !Array.isArray(response.data)) return;
+                    const total = typeof response.total === 'number' ? response.total : response.data.length;
+                    const page = typeof response.page === 'number' ? response.page : newPage;
+                    renderTable(config, response.data, total, page);
+                })
+                .catch(err => console.error('Error fetching data for', config.tableName, err));
+        }
+
+        window.changePage = changePage;
     </script>
 </body>
 
