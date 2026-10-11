@@ -1,0 +1,12 @@
+.git/
+.gitignore
+Dockerfile
+render.yaml
+*.log
+*.tmp
+.env
+node_modules/
+.next/
+dist/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,4 @@
+# No exponer archivos sensibles por Apache (el docroot es la raíz del repo).
+<FilesMatch "(\.sql|\.env|composer\.(json|lock)|Dockerfile|render\.yaml|\.htaccess)$">
+  Require all denied
+</FilesMatch>

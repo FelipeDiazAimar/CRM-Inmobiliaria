@@ -1,43 +1,43 @@
+-- =====================================================
+-- CRM Inmobiliaria — Schema + datos base (Rosario/AR)
+-- Motor: MySQL 8 / MariaDB 10.4+  |  Charset: utf8mb4
+-- Corregido por AGENTE C-9: normalización de tipos,
+-- ENGINE/CHARSET explícitos y columna IMAGENES.imagen
+-- (la usa el código PHP: pages/propiedades.php:54,138 y
+-- pages/interacciones.php:115). Se conserva IMAGENES.url
+-- porque también la usa el código (propiedades.php:99).
+-- =====================================================
+CREATE DATABASE IF NOT EXISTS `crm-inmobiliaria`
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `crm-inmobiliaria`;
+
 -- ==============================
 -- CLIENTES
 -- ==============================
 CREATE TABLE CLIENTES (
     id_cliente INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR
-(50),
-    apellido VARCHAR
-(50),
-    email VARCHAR
-(100),
-    telefono VARCHAR
-(20),
-    direccion VARCHAR
-(100),
-    ciudad VARCHAR
-(50),
-    provincia VARCHAR
-(50),
-    dni VARCHAR
-(20)
-);
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    email VARCHAR(100),
+    telefono VARCHAR(20),
+    direccion VARCHAR(100),
+    ciudad VARCHAR(50),
+    provincia VARCHAR(50),
+    dni VARCHAR(20)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- AGENTES
 -- ==============================
 CREATE TABLE AGENTES (
     id_agente INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR
-(50),
-    apellido VARCHAR
-(50),
-    email VARCHAR
-(100),
-    telefono VARCHAR
-(20),
-    matricula VARCHAR
-(20),
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    email VARCHAR(100),
+    telefono VARCHAR(20),
+    matricula VARCHAR(20),
     fecha_ingreso DATE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- PROPIEDADES
@@ -45,31 +45,21 @@ CREATE TABLE AGENTES (
 CREATE TABLE PROPIEDADES (
     id_propiedad INT PRIMARY KEY AUTO_INCREMENT,
     id_agente INT,
-    titulo VARCHAR
-(100),
+    titulo VARCHAR(100),
     descripcion TEXT,
-    tipo VARCHAR
-(50),
-    direccion VARCHAR
-(100),
-    ciudad VARCHAR
-(50),
-    provincia VARCHAR
-(50),
-    precio DECIMAL
-(12,2),
-    superficie DECIMAL
-(10,2),
+    tipo VARCHAR(50),
+    direccion VARCHAR(100),
+    ciudad VARCHAR(50),
+    provincia VARCHAR(50),
+    precio DECIMAL(12,2),
+    superficie DECIMAL(10,2),
     ambientes INT,
     banos INT,
     dormitorios INT,
     antiguedad INT,
-    estado VARCHAR
-(50),
-    FOREIGN KEY
-(id_agente) REFERENCES AGENTES
-(id_agente)
-);
+    estado VARCHAR(50),
+    FOREIGN KEY (id_agente) REFERENCES AGENTES (id_agente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- IMAGENES
@@ -77,58 +67,51 @@ CREATE TABLE PROPIEDADES (
 CREATE TABLE IMAGENES (
     id_imagen INT PRIMARY KEY AUTO_INCREMENT,
     id_propiedad INT,
-    url VARCHAR
-(255),
-    descripcion VARCHAR
-(100),
+    url VARCHAR(255),
+    imagen LONGBLOB NULL,
+    descripcion VARCHAR(100),
     principal BOOLEAN,
-    FOREIGN KEY
-(id_propiedad) REFERENCES PROPIEDADES
-(id_propiedad)
-);
+    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES (id_propiedad)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- CARACTERISTICAS
 -- ==============================
 CREATE TABLE CARACTERISTICAS (
     id_caracteristica INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR
-(50)
-);
+    nombre VARCHAR(50)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- PROPIEDAD_CARACTERISTICA
 -- ==============================
-CREATE TABLE PROPIEDAD_CARACTERISTICA
-(
+CREATE TABLE PROPIEDAD_CARACTERISTICA (
     id_propiedad INT,
     id_caracteristica INT,
     valor VARCHAR(50),
-    PRIMARY KEY(id_propiedad,id_caracteristica),
-    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES(id_propiedad),
-    FOREIGN KEY (id_caracteristica) REFERENCES CARACTERISTICAS(id_caracteristica)
-);
+    PRIMARY KEY (id_propiedad, id_caracteristica),
+    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES (id_propiedad),
+    FOREIGN KEY (id_caracteristica) REFERENCES CARACTERISTICAS (id_caracteristica)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- ETIQUETAS
 -- ==============================
 CREATE TABLE ETIQUETAS (
     id_etiqueta INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR
-(50)
-);
+    nombre VARCHAR(50)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- PROPIEDAD_ETIQUETA
 -- ==============================
-CREATE TABLE PROPIEDAD_ETIQUETA
-(
+CREATE TABLE PROPIEDAD_ETIQUETA (
     id_propiedad INT,
     id_etiqueta INT,
-    PRIMARY KEY(id_propiedad,id_etiqueta),
-    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES(id_propiedad),
-    FOREIGN KEY (id_etiqueta) REFERENCES ETIQUETAS(id_etiqueta)
-);
+    PRIMARY KEY (id_propiedad, id_etiqueta),
+    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES (id_propiedad),
+    FOREIGN KEY (id_etiqueta) REFERENCES ETIQUETAS (id_etiqueta)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- TRANSACCIONES
@@ -137,20 +120,13 @@ CREATE TABLE TRANSACCIONES (
     id_transaccion INT PRIMARY KEY AUTO_INCREMENT,
     id_propiedad INT,
     id_cliente INT,
-    tipo VARCHAR
-(50),
-    monto DECIMAL
-(12,2),
+    tipo VARCHAR(50),
+    monto DECIMAL(12,2),
     fecha_inicio DATE,
-    estado VARCHAR
-(50),
-    FOREIGN KEY
-(id_propiedad) REFERENCES PROPIEDADES
-(id_propiedad),
-    FOREIGN KEY
-(id_cliente) REFERENCES CLIENTES
-(id_cliente)
-);
+    estado VARCHAR(50),
+    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES (id_propiedad),
+    FOREIGN KEY (id_cliente) REFERENCES CLIENTES (id_cliente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- CITAS
@@ -161,19 +137,12 @@ CREATE TABLE CITAS (
     id_cliente INT,
     id_propiedad INT,
     fecha DATETIME,
-    estado VARCHAR
-(50),
+    estado VARCHAR(50),
     notas TEXT,
-    FOREIGN KEY
-(id_agente) REFERENCES AGENTES
-(id_agente),
-    FOREIGN KEY
-(id_cliente) REFERENCES CLIENTES
-(id_cliente),
-    FOREIGN KEY
-(id_propiedad) REFERENCES PROPIEDADES
-(id_propiedad)
-);
+    FOREIGN KEY (id_agente) REFERENCES AGENTES (id_agente),
+    FOREIGN KEY (id_cliente) REFERENCES CLIENTES (id_cliente),
+    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES (id_propiedad)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- INTERACCIONES
@@ -183,40 +152,24 @@ CREATE TABLE INTERACCIONES (
     id_cliente INT NOT NULL,
     id_agente INT,
     id_propiedad INT,
-    titulo VARCHAR
-(120) NOT NULL,
+    titulo VARCHAR(120) NOT NULL,
     descripcion TEXT,
-    estado_kanban ENUM
-('nuevo','seguimiento','negociacion','cerrado') DEFAULT 'nuevo',
-    prioridad ENUM
-('alta','media','baja') DEFAULT 'media',
-    medio VARCHAR
-(50),
-    proxima_accion VARCHAR
-(160),
+    estado_kanban ENUM('nuevo','seguimiento','negociacion','cerrado') DEFAULT 'nuevo',
+    prioridad ENUM('alta','media','baja') DEFAULT 'media',
+    medio VARCHAR(50),
+    proxima_accion VARCHAR(160),
     fecha_proxima_accion DATE,
     fecha_interaccion DATETIME DEFAULT CURRENT_TIMESTAMP,
     posicion INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON
-UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY
-(id_cliente) REFERENCES CLIENTES
-(id_cliente),
-    FOREIGN KEY
-(id_agente) REFERENCES AGENTES
-(id_agente),
-    FOREIGN KEY
-(id_propiedad) REFERENCES PROPIEDADES
-(id_propiedad),
-    INDEX idx_interacciones_estado
-(estado_kanban, prioridad),
-    INDEX idx_interacciones_agente
-(id_agente, estado_kanban),
-    INDEX idx_interacciones_propiedad
-(id_propiedad)
-);
-
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_cliente) REFERENCES CLIENTES (id_cliente),
+    FOREIGN KEY (id_agente) REFERENCES AGENTES (id_agente),
+    FOREIGN KEY (id_propiedad) REFERENCES PROPIEDADES (id_propiedad),
+    INDEX idx_interacciones_estado (estado_kanban, prioridad),
+    INDEX idx_interacciones_agente (id_agente, estado_kanban),
+    INDEX idx_interacciones_propiedad (id_propiedad)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- IMAGENES_PERFILES
@@ -225,19 +178,12 @@ CREATE TABLE IMAGENES_PERFILES (
     id_imagen_perfil INT PRIMARY KEY AUTO_INCREMENT,
     id_cliente INT NULL,
     id_agente INT NULL,
-    url VARCHAR
-(255),
-    descripcion VARCHAR
-(100),
+    url VARCHAR(255),
+    descripcion VARCHAR(100),
     principal BOOLEAN,
-    FOREIGN KEY
-(id_cliente) REFERENCES CLIENTES
-(id_cliente),
-    FOREIGN KEY
-(id_agente) REFERENCES AGENTES
-(id_agente)
-);
-
+    FOREIGN KEY (id_cliente) REFERENCES CLIENTES (id_cliente),
+    FOREIGN KEY (id_agente) REFERENCES AGENTES (id_agente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==============================
 -- CLIENTES (10 registros)

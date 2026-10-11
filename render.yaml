@@ -1,0 +1,23 @@
+# CRM Inmobiliaria en Render (runtime Docker: Render no tiene PHP nativo).
+services:
+  - type: web
+    name: crm-inmobiliaria
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /pages/index.php
+    envVars:
+      # Demo sin MySQL: la app funciona con datos de ejemplo.
+      - key: DEMO_MODE
+        value: true
+      # --- Modo real (completar en el dashboard; con sync:false Render los pide) ---
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_NAME
+        value: crm-inmobiliaria
+      - key: DB_PORT
+        value: 3306

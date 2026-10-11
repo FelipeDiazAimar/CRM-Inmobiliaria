@@ -400,3 +400,414 @@ footer {
 body.theme-light .table-scroll thead {
     background: #f3f4f6;
 }
+
+/* ============================================================
+   C-2 · Dashboard premium inmobiliario (modo demo)
+   Extiende la paleta actual sin renombrar clases existentes:
+   verde como acento principal + dorado/azul marino sobrios.
+   ============================================================ */
+:root {
+    --gold: #c9a961;
+    --gold-soft: #e7d3a7;
+    --navy: #0f2440;
+}
+
+.demo-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(15, 36, 64, .55);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.demo-banner p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.demo-dot {
+    flex: 0 0 10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+}
+
+body.theme-light .demo-banner {
+    background: #fdf8ec;
+}
+
+/* KPIs premium: 4 columnas en desktop, 2 en mobile */
+.kpis-premium {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kpis-compat {
+    margin-top: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.card.kpi.kpi-gold {
+    border-top: 3px solid var(--gold);
+}
+
+.kpi-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.kpi-ico {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    color: var(--gold);
+}
+
+.kpi .sub {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+/* Paneles del resumen ejecutivo */
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.panel {
+    background: rgba(17, 24, 39, .8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+body.theme-light .panel {
+    background: rgba(249, 250, 251, .9);
+    border-color: rgba(0, 0, 0, .1);
+}
+
+.panel-full {
+    grid-column: 1 / -1;
+}
+
+.panel h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.panel .hint {
+    margin: 4px 0 12px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.demo-note {
+    margin-top: 16px;
+    border-left: 6px solid var(--gold);
+}
+
+.empty {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, .03);
+    border: 1px dashed #374151;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+/* Actividad reciente */
+.act-list,
+.cita-list,
+.agent-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.act-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .02);
+}
+
+body.theme-light .act-item {
+    border-color: #e5e7eb;
+    background: #ffffff;
+}
+
+.act-main,
+.cita-main,
+.agent-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.act-main strong,
+.cita-main strong,
+.agent-main strong {
+    font-size: 14px;
+    color: var(--text);
+}
+
+.mini {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.nota {
+    font-size: 12px;
+    color: var(--text);
+    opacity: .8;
+    font-style: italic;
+}
+
+.act-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid #374151;
+    color: #9ca3af;
+    text-transform: capitalize;
+}
+
+.pill.kanban-nuevo {
+    border-color: #06b6d4;
+    color: #67e8f9;
+}
+
+.pill.kanban-seguimiento {
+    border-color: var(--gold);
+    color: var(--gold-soft);
+}
+
+.pill.kanban-negociacion {
+    border-color: #f59e0b;
+    color: #fcd34d;
+}
+
+.pill.kanban-cerrado {
+    border-color: #22c55e;
+    color: #86efac;
+}
+
+body.theme-light .pill {
+    background: #f3f4f6;
+}
+
+/* Próximas citas */
+.cita-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .02);
+}
+
+body.theme-light .cita-item {
+    border-color: #e5e7eb;
+    background: #ffffff;
+}
+
+.cita-fecha {
+    flex: 0 0 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--navy);
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    padding: 6px 4px;
+}
+
+.cita-fecha .d {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.cita-fecha .m {
+    font-size: 11px;
+    color: var(--gold-soft);
+    text-transform: uppercase;
+}
+
+/* Top agentes */
+.agent-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .02);
+}
+
+body.theme-light .agent-row {
+    border-color: #e5e7eb;
+    background: #ffffff;
+}
+
+.rank {
+    flex: 0 0 24px;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+}
+
+.avatar {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    background: var(--navy);
+    border: 1px solid var(--gold);
+}
+
+.agent-main {
+    flex: 1;
+}
+
+.bar {
+    display: block;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .1);
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+body.theme-light .bar {
+    background: #e5e7eb;
+}
+
+.bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    border-radius: 999px;
+}
+
+/* ============================================================
+   Responsive mobile-first
+   ============================================================ */
+@media (max-width: 1100px) {
+    .main-content {
+        margin: 0 auto;
+        max-width: 1100px;
+    }
+
+    .container {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 1000px) {
+    .kpis-premium,
+    .kpis-compat {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dash-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 800px) {
+    .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    h1 {
+        white-space: normal;
+        font-size: 24px;
+    }
+
+    .main-content {
+        padding: 16px 12px;
+    }
+}
+
+/* Tablas del modo real: se convierten en cards en mobile */
+@media (max-width: 640px) {
+    .kpi .value {
+        font-size: 22px;
+    }
+
+    .act-item {
+        flex-direction: column;
+    }
+
+    .act-meta {
+        align-items: flex-start;
+    }
+
+    .table-scroll table thead {
+        display: none;
+    }
+
+    .table-scroll table,
+    .table-scroll tbody,
+    .table-scroll tr,
+    .table-scroll td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-scroll tr {
+        border: 1px solid #374151;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        padding: 6px 8px;
+    }
+
+    .table-scroll td {
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, .06) !important;
+        padding: 6px 4px !important;
+    }
+
+    .table-scroll td:last-child {
+        border-bottom: none !important;
+    }
+}
